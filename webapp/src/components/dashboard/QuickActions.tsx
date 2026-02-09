@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PieChart, ArrowRight, BookOpen, Target } from "lucide-react";
+import { PieChart, ArrowRight, BookOpen, Target, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nudges = [
@@ -38,6 +38,17 @@ const nudges = [
     glowColor: "group-hover:shadow-warning/20",
     gradientFrom: "from-warning/20",
     gradientTo: "to-warning/5",
+  },
+  {
+    icon: Wallet,
+    label: "Track your budget",
+    description: "Set limits & monitor spending",
+    href: "/money-tracker",
+    color: "text-success",
+    bgColor: "bg-success/10",
+    glowColor: "group-hover:shadow-success/20",
+    gradientFrom: "from-success/20",
+    gradientTo: "to-success/5",
   },
 ];
 

@@ -11,6 +11,7 @@ import Goals from "./pages/Goals";
 import Learn from "./pages/Learn";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import MoneyTracker from "./pages/MoneyTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/learn" element={<Learn />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/money-tracker" element={<MoneyTracker />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

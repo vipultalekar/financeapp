@@ -108,6 +108,8 @@ export interface UserProfile {
   monthlyExpenses: MonthlyExpenseEntry[];
   subscriptions: Subscription[];
   bills: Bill[];
+  budgetLimits: BudgetLimit[];
+  spendingEntries: SpendingEntry[];
   createdAt: string;
 }
 
@@ -202,4 +204,27 @@ export interface InvestmentTopic {
 export interface CashFlowData {
   date: string;
   balance: number;
+}
+
+// Budget tracking types
+export type BudgetCategory = "food" | "transport" | "shopping" | "entertainment" | "health" | "utilities" | "other";
+
+export interface BudgetLimit {
+  id: string;
+  category: BudgetCategory;
+  categoryName: string;
+  limit: number;
+  spent: number;
+  icon: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface SpendingEntry {
+  id: string;
+  budgetId: string;
+  description: string;
+  amount: number;
+  date: string; // ISO date string
+  createdAt: string;
 }

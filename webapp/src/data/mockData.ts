@@ -6,6 +6,8 @@ import type {
   SavingsGoal,
   InvestmentTopic,
   CashFlowData,
+  BudgetLimit,
+  SpendingEntry,
 } from "@/lib/types";
 
 // Spending Categories with realistic Gen Z data
@@ -263,3 +265,83 @@ export const incomeRanges = [
   { value: 8000, label: "$7,000 - $10,000" },
   { value: 12000, label: "Over $10,000" },
 ];
+
+// Budget limits and spending tracking
+export const budgetLimits: BudgetLimit[] = [
+  {
+    id: "1",
+    category: "food",
+    categoryName: "Food & Dining",
+    limit: 1000,
+    spent: 200,
+    icon: "utensils",
+    color: "hsl(var(--chart-1))",
+    createdAt: "2024-02-01T00:00:00Z",
+  },
+  {
+    id: "2",
+    category: "transport",
+    categoryName: "Transport",
+    limit: 2000,
+    spent: 0,
+    icon: "car",
+    color: "hsl(var(--chart-3))",
+    createdAt: "2024-02-01T00:00:00Z",
+  },
+  {
+    id: "3",
+    category: "shopping",
+    categoryName: "Shopping",
+    limit: 1500,
+    spent: 450,
+    icon: "shopping-bag",
+    color: "hsl(var(--chart-4))",
+    createdAt: "2024-02-01T00:00:00Z",
+  },
+  {
+    id: "4",
+    category: "entertainment",
+    categoryName: "Entertainment",
+    limit: 800,
+    spent: 180,
+    icon: "gamepad-2",
+    color: "hsl(var(--chart-5))",
+    createdAt: "2024-02-01T00:00:00Z",
+  },
+];
+
+export const spendingEntries: SpendingEntry[] = [
+  {
+    id: "1",
+    budgetId: "1",
+    description: "Lunch at restaurant",
+    amount: 200,
+    date: "2024-02-05T12:30:00Z",
+    createdAt: "2024-02-05T12:30:00Z",
+  },
+  {
+    id: "2",
+    budgetId: "3",
+    description: "New headphones",
+    amount: 250,
+    date: "2024-02-03T15:00:00Z",
+    createdAt: "2024-02-03T15:00:00Z",
+  },
+  {
+    id: "3",
+    budgetId: "3",
+    description: "Clothing",
+    amount: 200,
+    date: "2024-02-01T10:00:00Z",
+    createdAt: "2024-02-01T10:00:00Z",
+  },
+  {
+    id: "4",
+    budgetId: "4",
+    description: "Movie tickets",
+    amount: 180,
+    date: "2024-02-04T19:00:00Z",
+    createdAt: "2024-02-04T19:00:00Z",
+  },
+];
+
