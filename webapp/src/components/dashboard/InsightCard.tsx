@@ -169,7 +169,7 @@ export function InsightCard() {
       <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 50%, hsla(175, 65%, 50%, 0.1) 0%, transparent 70%)`,
+          background: `radial-gradient(circle at 50% 50%, hsla(217, 91%, 60%, 0.1) 0%, transparent 70%)`,
         }}
       />
 

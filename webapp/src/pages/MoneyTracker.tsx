@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Wallet, TrendingUp, ArrowLeft } from "lucide-react";
+import { Plus, Wallet, ArrowLeft, Edit2, Shield, TrendingUp, Zap } from "lucide-react";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
 import { BudgetCard } from "@/components/dashboard/BudgetCard";
@@ -21,10 +21,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { AnimatePage, AnimateList, AnimateItem, HoverScale } from "@/components/effects/AnimatePage";
+import { useConfetti } from "@/components/effects/Confetti";
+import { Spotlight } from "@/components/effects/Spotlight";
 
 export default function MoneyTracker() {
     const navigate = useNavigate();
-    const { formatCurrency } = useCurrency();
+    const { formatCurrency, symbol } = useCurrency();
     const [budgets, setBudgets] = useState<BudgetLimit[]>([]);
     const [entries, setEntries] = useState<SpendingEntry[]>([]);
     const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
@@ -32,6 +35,11 @@ export default function MoneyTracker() {
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [showHistoryDialog, setShowHistoryDialog] = useState(false);
     const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+    const [editingBudget, setEditingBudget] = useState<BudgetLimit | null>(null);
+    const [totalBudgetGoal, setTotalBudgetGoal] = useState<number>(0);
+    const [showSetTotalGoalDialog, setShowSetTotalGoalDialog] = useState(false);
+    const [tempGoal, setTempGoal] = useState("");
+    const { fire, ConfettiComponent } = useConfetti();
 
     // Load data from localStorage or use mock data
     useEffect(() => {
@@ -49,6 +57,11 @@ export default function MoneyTracker() {
         } else {
             setEntries(mockSpendingEntries);
         }
+
+        const savedGoal = localStorage.getItem("totalBudgetGoal");
+        if (savedGoal) {
+            setTotalBudgetGoal(parseFloat(savedGoal));
+        }
     }, []);
 
     // Save to localStorage whenever data changes
@@ -64,8 +77,15 @@ export default function MoneyTracker() {
         }
     }, [entries]);
 
+    useEffect(() => {
+        if (totalBudgetGoal > 0) {
+            localStorage.setItem("totalBudgetGoal", totalBudgetGoal.toString());
+        }
+    }, [totalBudgetGoal]);
+
     // Calculate totals
-    const totalLimit = budgets.reduce((sum, b) => sum + b.limit, 0);
+    const sumOfCategoryLimits = budgets.reduce((sum, b) => sum + b.limit, 0);
+    const totalLimit = totalBudgetGoal > 0 ? totalBudgetGoal : sumOfCategoryLimits;
     const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
     const totalRemaining = totalLimit - totalSpent;
     const percentageSpent = totalLimit > 0 ? (totalSpent / totalLimit) * 100 : 0;
@@ -83,18 +103,14 @@ export default function MoneyTracker() {
 
     const handleSaveExpense = (newEntry: Omit<SpendingEntry, "id" | "createdAt">) => {
         if (editingEntry) {
-            // Update existing entry
             const updatedEntries = entries.map((e) =>
                 e.id === editingEntry.id
                     ? { ...e, ...newEntry }
                     : e
             );
             setEntries(updatedEntries);
-
-            // Recalculate budget spent amounts
             recalculateBudgetSpent(updatedEntries);
         } else {
-            // Add new entry
             const entry: SpendingEntry = {
                 ...newEntry,
                 id: Date.now().toString(),
@@ -102,8 +118,6 @@ export default function MoneyTracker() {
             };
             const updatedEntries = [...entries, entry];
             setEntries(updatedEntries);
-
-            // Recalculate budget spent amounts
             recalculateBudgetSpent(updatedEntries);
         }
     };
@@ -131,177 +145,298 @@ export default function MoneyTracker() {
     };
 
     const handleAddCategory = (category: { categoryName: string; limit: number; icon: string; color: string }) => {
-        const newBudget: BudgetLimit = {
-            id: Date.now().toString(),
-            category: category.categoryName.toLowerCase().replace(/\s+/g, "-") as any,
-            categoryName: category.categoryName,
-            limit: category.limit,
-            spent: 0,
-            icon: category.icon,
-            color: category.color,
-            createdAt: new Date().toISOString(),
-        };
-        const updatedBudgets = [...budgets, newBudget];
-        setBudgets(updatedBudgets);
-        localStorage.setItem("budgetLimits", JSON.stringify(updatedBudgets));
+        if (editingBudget) {
+            const updatedBudgets = budgets.map((b) =>
+                b.id === editingBudget.id
+                    ? { ...b, ...category, category: category.categoryName.toLowerCase().replace(/\s+/g, "-") as any }
+                    : b
+            );
+            setBudgets(updatedBudgets);
+            localStorage.setItem("budgetLimits", JSON.stringify(updatedBudgets));
+            setEditingBudget(null);
+        } else {
+            const newBudget: BudgetLimit = {
+                id: Date.now().toString(),
+                category: category.categoryName.toLowerCase().replace(/\s+/g, "-") as any,
+                categoryName: category.categoryName,
+                limit: category.limit,
+                spent: 0,
+                icon: category.icon,
+                color: category.color,
+                createdAt: new Date().toISOString(),
+            };
+            const updatedBudgets = [...budgets, newBudget];
+            setBudgets(updatedBudgets);
+            localStorage.setItem("budgetLimits", JSON.stringify(updatedBudgets));
+            fire();
+        }
+    };
+
+    const handleEditCategory = (budget: BudgetLimit) => {
+        setEditingBudget(budget);
+        setShowAddCategoryDialog(true);
+    };
+
+    const handleDeleteCategory = (budgetId: string) => {
+        if (window.confirm("Systems override: Proceed with category deletion?")) {
+            const updatedBudgets = budgets.filter((b) => b.id !== budgetId);
+            const updatedEntries = entries.filter((e) => e.budgetId !== budgetId);
+            setBudgets(updatedBudgets);
+            setEntries(updatedEntries);
+            localStorage.setItem("budgetLimits", JSON.stringify(updatedBudgets));
+            localStorage.setItem("spendingEntries", JSON.stringify(updatedEntries));
+        }
+    };
+
+    const handleSaveTotalGoal = () => {
+        const goal = parseFloat(tempGoal);
+        if (!isNaN(goal) && goal >= 0) {
+            setTotalBudgetGoal(goal);
+            setShowSetTotalGoalDialog(false);
+        }
     };
 
     const selectedBudget = budgets.find((b) => b.id === selectedBudgetId);
     const selectedEntries = entries.filter((e) => e.budgetId === selectedBudgetId);
 
     return (
-        <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-            {/* Floating background orbs */}
-            <FloatingOrbs variant="default" />
+        <AnimatePage>
+            <ConfettiComponent />
+            <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
+                <FloatingOrbs variant="default" />
 
-            {/* Header */}
-            <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-4 sm:pb-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate("/")}
-                        className="h-9 w-9 p-0 hover:bg-muted"
-                    >
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Money Tracker</h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                            Set limits & track your spending
-                        </p>
-                    </div>
-                </div>
-
-                {/* Summary Card */}
-                <div className="glass-card-3d p-4 sm:p-6 glow-teal">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Wallet className="w-5 h-5 text-primary" />
-                        <h2 className="text-sm font-medium text-muted-foreground">Total Budget Overview</h2>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <p className="text-xs text-muted-foreground mb-1">Total Limit</p>
-                            <p className="text-lg sm:text-xl font-bold text-foreground">
-                                {formatCurrency(totalLimit)}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground mb-1">Spent</p>
-                            <p className="text-lg sm:text-xl font-bold text-accent">
-                                <AnimatedNumber value={totalSpent} prefix={formatCurrency(0).replace(/[\d.]/g, "")} />
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-                            <p className={cn(
-                                "text-lg sm:text-xl font-bold",
-                                totalRemaining < 0 ? "text-destructive" : "text-success"
-                            )}>
-                                {formatCurrency(totalRemaining)}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                            <span>Budget Used</span>
-                            <span>{Math.round(percentageSpent)}%</span>
-                        </div>
-                        <AnimatedProgress
-                            value={Math.min(percentageSpent, 100)}
-                            color={percentageSpent > 100 ? "warning" : percentageSpent >= 80 ? "warning" : "primary"}
-                            size="md"
-                            showGlow={true}
-                        />
-                    </div>
-                </div>
-            </header>
-
-            {/* Budget Categories */}
-            <main className="relative z-10 px-4 sm:px-6 space-y-4 pb-40 sm:pb-28">
-                <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                        Budget Categories ({budgets.length})
-                    </h3>
-                    <Button
-                        onClick={() => setShowAddCategoryDialog(true)}
-                        size="sm"
-                        className="btn-3d h-9 px-3 sm:px-4"
-                    >
-                        <Plus className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Add Category</span>
-                    </Button>
-                </div>
-
-                {budgets.length === 0 ? (
-                    <div className="empty-state-calm py-16">
-                        <div className="empty-icon w-20 h-20 mx-auto mb-4">
-                            <div className="text-7xl">💰</div>
-                        </div>
-                        <h3 className="empty-title text-base">No budgets yet</h3>
-                        <p className="empty-description">
-                            Start tracking your spending by creating your first budget category
-                        </p>
-                        <Button onClick={() => setShowAddCategoryDialog(true)} className="mt-6 btn-3d">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Budget
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 animate-stagger-in">
-                        {budgets.map((budget, index) => (
-                            <div key={budget.id} style={{ animationDelay: `${index * 0.1}s`, opacity: 0 }} className="animate-fade-in-up">
-                                <BudgetCard
-                                    budget={budget}
-                                    entries={entries.filter((e) => e.budgetId === budget.id)}
-                                    onAddExpense={handleAddExpense}
-                                    onViewHistory={handleViewHistory}
-                                />
+                {/* Header */}
+                <header className="relative z-10 px-6 pt-10 pb-6">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-4">
+                            <HoverScale>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => navigate("/")}
+                                    className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-primary/10 hover:text-primary transition-all"
+                                >
+                                    <ArrowLeft className="h-5 w-5" />
+                                </Button>
+                            </HoverScale>
+                            <div>
+                                <h1 className="text-3xl font-black text-white tracking-tight shimmer-text">Asset Monitoring</h1>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] opacity-60">System-wide budget tracking</p>
                             </div>
-                        ))}
+                        </div>
                     </div>
+
+                    {/* Summary Master Card */}
+                    <HoverScale>
+                        <Spotlight className="glass-card-3d p-6 glow-teal bg-primary/5 border-primary/20">
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                                        <Shield className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operational Status</h2>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-6 mb-8">
+                                    <div className="relative group">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Master Cap</span>
+                                            <button
+                                                onClick={() => {
+                                                    setTempGoal(totalLimit.toString());
+                                                    setShowSetTotalGoalDialog(true);
+                                                }}
+                                                className="p-1 hover:bg-primary/10 rounded-md transition-colors opacity-40 group-hover:opacity-100"
+                                            >
+                                                <Edit2 className="w-3 h-3 text-primary" />
+                                            </button>
+                                        </div>
+                                        <p className="text-xl sm:text-2xl font-black text-white tracking-tighter">
+                                            {formatCurrency(totalLimit)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <TrendingUp className="w-3 h-3 text-primary" />
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Utilized</span>
+                                        </div>
+                                        <p className="text-xl sm:text-2xl font-black text-primary tracking-tighter shimmer-text">
+                                            <AnimatedNumber value={totalSpent} prefix={symbol} />
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <Zap className="w-3 h-3 text-primary" />
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Residual</span>
+                                        </div>
+                                        <p className={cn(
+                                            "text-xl sm:text-2xl font-black tracking-tighter",
+                                            totalRemaining < 0 ? "text-destructive" : "text-white"
+                                        )}>
+                                            {formatCurrency(totalRemaining)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                                        <span className="opacity-60">System Utilization</span>
+                                        <span className={cn(percentageSpent > 100 ? "text-warning" : "text-primary")}>
+                                            {Math.round(percentageSpent)}%
+                                        </span>
+                                    </div>
+                                    <AnimatedProgress
+                                        value={Math.min(percentageSpent, 100)}
+                                        color={percentageSpent > 100 ? "warning" : "primary"}
+                                        size="md"
+                                        showGlow={true}
+                                    />
+                                </div>
+                            </div>
+                        </Spotlight>
+                    </HoverScale>
+                </header>
+
+                {/* Grid Clusters */}
+                <main className="relative z-10 px-6 space-y-4 pb-40 sm:pb-28">
+                    <div className="flex items-center justify-between gap-3 px-1">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                            Category Clusters ({budgets.length})
+                        </h3>
+                        <HoverScale>
+                            <Button
+                                onClick={() => setShowAddCategoryDialog(true)}
+                                size="sm"
+                                className="btn-3d h-10 px-6 bg-primary font-black uppercase tracking-widest text-[10px]"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Initialize New Category
+                            </Button>
+                        </HoverScale>
+                    </div>
+
+                    {budgets.length === 0 ? (
+                        <div className="empty-state-calm py-20 bg-card/20 rounded-[2.5rem] border border-white/5 backdrop-blur-sm text-center">
+                            <div className="empty-icon w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-primary/5 rounded-full">
+                                <Wallet className="w-10 h-10 text-primary animate-gentle-float" />
+                            </div>
+                            <h3 className="empty-title text-xl font-black text-white tracking-tight">System Idle</h3>
+                            <p className="empty-description text-sm opacity-60 max-w-[260px] mx-auto mb-8 font-medium">
+                                Deploy category monitoring to begin intelligent asset tracking.
+                            </p>
+                            <HoverScale>
+                                <Button onClick={() => setShowAddCategoryDialog(true)} className="btn-3d px-10 bg-primary font-black uppercase tracking-widest text-xs h-12">
+                                    Initialize Tracker
+                                </Button>
+                            </HoverScale>
+                        </div>
+                    ) : (
+                        <AnimateList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {budgets.map((budget) => (
+                                <AnimateItem key={budget.id}>
+                                    <BudgetCard
+                                        budget={budget}
+                                        entries={entries.filter((e) => e.budgetId === budget.id)}
+                                        onAddExpense={handleAddExpense}
+                                        onViewHistory={handleViewHistory}
+                                        onEditCategory={handleEditCategory}
+                                        onDeleteCategory={handleDeleteCategory}
+                                    />
+                                </AnimateItem>
+                            ))}
+                        </AnimateList>
+                    )}
+                </main>
+
+                {/* System Overlays */}
+                {selectedBudget && (
+                    <AddExpenseDialog
+                        open={showAddDialog}
+                        onOpenChange={setShowAddDialog}
+                        budget={selectedBudget}
+                        existingEntry={editingEntry}
+                        onSave={handleSaveExpense}
+                    />
                 )}
-            </main>
 
-            {/* Add/Edit Expense Dialog */}
-            {selectedBudget && (
-                <AddExpenseDialog
-                    open={showAddDialog}
-                    onOpenChange={setShowAddDialog}
-                    budget={selectedBudget}
-                    existingEntry={editingEntry}
-                    onSave={handleSaveExpense}
+                <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+                    <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-white/10 sm:max-w-[500px] max-h-[85vh] w-[95vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
+                        <DialogHeader className="flex-none p-8 pb-2">
+                            <DialogTitle className="text-2xl font-black tracking-tight shimmer-text">
+                                Log: {selectedBudget?.categoryName}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-y-auto min-h-0 p-8 pt-0">
+                            <SpendingHistory
+                                entries={selectedEntries}
+                                onEdit={handleEditEntry}
+                                onDelete={handleDeleteEntry}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <AddCategoryDialog
+                    open={showAddCategoryDialog}
+                    onOpenChange={(open) => {
+                        setShowAddCategoryDialog(open);
+                        if (!open) setEditingBudget(null);
+                    }}
+                    onSave={handleAddCategory}
+                    initialData={editingBudget ? {
+                        categoryName: editingBudget.categoryName,
+                        limit: editingBudget.limit,
+                        icon: editingBudget.icon,
+                        color: editingBudget.color
+                    } : undefined}
                 />
-            )}
 
-            {/* Spending History Dialog */}
-            <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-                <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-border/50 sm:max-w-[500px] max-h-[85vh] w-[95vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
-                    <DialogHeader className="flex-none p-6 pb-2">
-                        <DialogTitle className="text-xl font-semibold">
-                            {selectedBudget?.categoryName} History
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-0">
-                        <SpendingHistory
-                            entries={selectedEntries}
-                            onEdit={handleEditEntry}
-                            onDelete={handleDeleteEntry}
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
+                <Dialog open={showSetTotalGoalDialog} onOpenChange={setShowSetTotalGoalDialog}>
+                    <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-white/10 sm:max-w-[400px] w-[90vw] p-8">
+                        <DialogHeader>
+                            <DialogTitle className="font-black text-xl tracking-tight">System Master Cap</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6 py-6 font-bold">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                                    Master Budget Limit
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-2xl">{symbol}</span>
+                                    <input
+                                        type="number"
+                                        value={tempGoal}
+                                        onChange={(e) => setTempGoal(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full pl-12 pr-4 py-8 rounded-[2rem] bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all font-black text-4xl tracking-tighter"
+                                        autoFocus
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground opacity-60 uppercase font-black tracking-widest leading-relaxed">
+                                    This parameter defines the peak operational expenditure allowed per cycle.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-4 pt-4">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setShowSetTotalGoalDialog(false)}
+                                className="flex-1 font-black uppercase tracking-widest text-[10px] border border-white/5 rounded-2xl h-14"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSaveTotalGoal}
+                                className="flex-1 btn-3d bg-primary font-black uppercase tracking-widest text-[10px] rounded-2xl h-14"
+                            >
+                                Update Cap
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Add Category Dialog */}
-            <AddCategoryDialog
-                open={showAddCategoryDialog}
-                onOpenChange={setShowAddCategoryDialog}
-                onSave={handleAddCategory}
-            />
-
-            <BottomNav />
-        </div>
+                <BottomNav />
+            </div>
+        </AnimatePage>
     );
 }

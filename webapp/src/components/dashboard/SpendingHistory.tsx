@@ -64,15 +64,15 @@ export function SpendingHistory({ entries, onEdit, onDelete }: SpendingHistoryPr
                 >
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="font-medium text-sm text-foreground truncate">
+                            <p className="font-medium text-base text-foreground truncate">
                                 {entry.description}
                             </p>
-                            <p className="font-bold text-sm text-foreground shrink-0">
+                            <p className="font-bold text-base text-foreground shrink-0">
                                 {formatCurrency(entry.amount)}
                             </p>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
                             <span>{formatDate(entry.date)}</span>
                         </div>
                     </div>
@@ -81,18 +81,18 @@ export function SpendingHistory({ entries, onEdit, onDelete }: SpendingHistoryPr
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                            className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary"
                             onClick={() => onEdit(entry)}
                         >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                            className="h-9 w-9 p-0 hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => onDelete(entry.id)}
                         >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>

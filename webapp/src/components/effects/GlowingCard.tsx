@@ -82,7 +82,7 @@ export function GlowingCard({
             glowColors[glowColor]
           )}
           style={{
-            background: `radial-gradient(circle at ${glowPosition.x}% ${glowPosition.y}%, var(--glow-color, hsla(175, 65%, 50%, 0.15)) 0%, transparent 60%)`,
+            background: `radial-gradient(circle at ${glowPosition.x}% ${glowPosition.y}%, var(--glow-color, hsla(217, 91%, 60%, 0.15)) 0%, transparent 60%)`,
           }}
         />
       )}
@@ -92,7 +92,7 @@ export function GlowingCard({
         <div
           className="absolute inset-[-1px] rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-500"
           style={{
-            background: `linear-gradient(135deg, hsla(175, 65%, 50%, 0.3), hsla(260, 50%, 60%, 0.3), hsla(210, 60%, 55%, 0.3))`,
+            background: `linear-gradient(135deg, hsla(217, 91%, 60%, 0.3), hsla(217, 91%, 60%, 0.3), hsla(210, 60%, 55%, 0.3))`,
             mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
             maskComposite: "xor",
             WebkitMaskComposite: "xor",

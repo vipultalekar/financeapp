@@ -1,12 +1,11 @@
 "use client";
 
 import { useNavigate } from "react-router-dom";
-import { Settings, LogOut, TrendingUp, PiggyBank, Wallet, BookOpen, ChevronRight, FileDown } from "lucide-react";
+import { Settings, LogOut, TrendingUp, PiggyBank, Wallet, BookOpen, ChevronRight, FileDown, Shield, Calendar, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { BottomNav } from "@/components/navigation/BottomNav";
-import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +18,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { downloadMonthlyReport, getCurrentMonthReportData } from "@/lib/reportGenerator";
+import { AnimatePage, AnimateList, AnimateItem, HoverScale } from "@/components/effects/AnimatePage";
+import { Spotlight } from "@/components/effects/Spotlight";
+import { AnimatedProgress, AnimatedNumber } from "@/components/ui/AnimatedProgress";
+import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
 
 function getInitials(name: string): string {
   return name
@@ -31,12 +34,10 @@ function getInitials(name: string): string {
 
 export default function Profile() {
   const { profile, derivedFinancials, resetProfile, currentMonthExpenses } = useUserProfile();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, symbol } = useCurrency();
   const navigate = useNavigate();
 
-  if (!profile) {
-    return null;
-  }
+  if (!profile) return null;
 
   const handleLogout = () => {
     resetProfile();
@@ -53,216 +54,190 @@ export default function Profile() {
   const totalExpenses = profile.expenseBreakdown.reduce((sum, item) => sum + item.amount, 0);
   const totalGoalsSaved = profile.goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
   const totalGoalsTarget = profile.goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+  const goalsPercentage = totalGoalsTarget > 0 ? Math.round((totalGoalsSaved / totalGoalsTarget) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <FloatingOrbs variant="subtle" />
+    <AnimatePage>
+      <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
+        <FloatingOrbs variant="default" />
 
-      {/* Header */}
-      <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-4 sm:pb-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold">Profile</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/settings")}
-            className="rounded-xl min-w-[44px] min-h-[44px]"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
-
-      <main className="relative z-10 px-4 sm:px-6 space-y-4 sm:space-y-6">
-        {/* Profile Card */}
-        <div className="glass-card-3d p-4 sm:p-6 text-center glow-teal">
-          {/* Avatar */}
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <span className="text-xl sm:text-2xl font-bold text-primary">
-              {getInitials(profile.name || "User")}
-            </span>
-          </div>
-
-          <h2 className="text-lg sm:text-xl font-bold mb-1">{profile.name || "User"}</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground capitalize">
-            {profile.financialVibe === "figuring-out"
-              ? "Figuring things out"
-              : `Focused on ${profile.financialVibe}ing`}
-          </p>
-
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/50">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Member since{" "}
-              {new Date(profile.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
-
-        {/* Learn Section - Prominent Card */}
-        <div
-          className="glass-card-3d p-4 sm:p-5 cursor-pointer hover:scale-[1.02] transition-transform"
-          onClick={() => navigate("/learn")}
-        >
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base">Learn About Money</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Financial tips, guides, and education
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-          </div>
-        </div>
-
-        {/* Financial Summary */}
-        <div>
-          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 sm:mb-3">
-            Financial Summary
-          </h3>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {/* Monthly Income */}
-            <div className="glass-card p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                  <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
-                </div>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Monthly Income</p>
-              <p className="text-sm sm:text-lg font-semibold text-success truncate">
-                {formatCurrency(profile.monthlyIncome)}
-              </p>
-            </div>
-
-            {/* Fixed Expenses */}
-            <div className="glass-card p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" />
-                </div>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Fixed Expenses</p>
-              <p className="text-sm sm:text-lg font-semibold text-accent truncate">
-                {formatCurrency(totalExpenses)}
-              </p>
-            </div>
-
-            {/* Savings Rate */}
-            <div className="glass-card p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <PiggyBank className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                </div>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Savings Rate</p>
-              <p className="text-sm sm:text-lg font-semibold text-primary">
-                {derivedFinancials?.actualSavingsRate ?? 0}%
-              </p>
-            </div>
-
-            {/* Goals Progress */}
-            <div className="glass-card p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-chart-3/20 flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-chart-3" />
-                </div>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Goals Progress</p>
-              <p className="text-sm sm:text-lg font-semibold text-chart-3">
-                {totalGoalsTarget > 0
-                  ? `${Math.round((totalGoalsSaved / totalGoalsTarget) * 100)}%`
-                  : "No goals"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Expense Breakdown */}
-        {profile.expenseBreakdown.length > 0 && (
+        {/* Header */}
+        <header className="relative z-10 px-6 pt-10 pb-6 flex items-center justify-between">
           <div>
-            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 sm:mb-3">
-              Expense Breakdown
-            </h3>
-            <div className="glass-card p-3 sm:p-4">
-              <div className="space-y-2 sm:space-y-3">
-                {profile.expenseBreakdown.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-xs sm:text-sm truncate">{expense.name}</p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground capitalize">
-                        {expense.category}
-                      </p>
-                    </div>
-                    <p className="font-semibold text-xs sm:text-sm shrink-0 ml-2">{formatCurrency(expense.amount)}</p>
+            <h1 className="text-3xl font-black text-white tracking-tight shimmer-text">Intelligence Profile</h1>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] opacity-60">Identity & Financial Status</p>
+          </div>
+          <HoverScale>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings")}
+              className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-primary/10 hover:text-primary transition-all"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </HoverScale>
+        </header>
+
+        <main className="relative z-10 px-6 space-y-8 pb-32">
+          {/* Profile Card */}
+          <HoverScale>
+            <Spotlight className="glass-card-3d p-8 text-center glow-teal bg-primary/5 border-primary/20">
+              <div className="relative z-10">
+                {/* Avatar */}
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 animate-pulse" />
+                  <div className="relative w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto shadow-2xl">
+                    <span className="text-3xl font-black text-primary tracking-tighter shimmer-text">
+                      {getInitials(profile.name || "User")}
+                    </span>
                   </div>
-                ))}
-                <div className="pt-2 sm:pt-3 border-t border-border/50 flex items-center justify-between">
-                  <p className="font-medium text-xs sm:text-sm">Total</p>
-                  <p className="font-bold text-primary text-xs sm:text-sm">{formatCurrency(totalExpenses)}</p>
+                </div>
+
+                <h2 className="text-2xl font-black text-white tracking-tight mb-1">{profile.name || "User"}</h2>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    {profile.financialVibe === "figuring-out" ? "Strategy: Discovery" : `Strategy: ${profile.financialVibe}`}
+                  </p>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-white/5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 flex items-center justify-center gap-2">
+                    <Calendar className="w-3 h-3" />
+                    ACTIVE SINCE {new Date(profile.createdAt).getFullYear()}
+                  </p>
                 </div>
               </div>
+            </Spotlight>
+          </HoverScale>
+
+          {/* Core Metrics */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Critical Metrics</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: "Revenue", value: profile.monthlyIncome, icon: Wallet, color: "text-success", bgColor: "bg-success/10" },
+                { label: "Baseline", value: totalExpenses, icon: TrendingUp, color: "text-accent", bgColor: "bg-accent/10" },
+                { label: "Efficiency", value: `${derivedFinancials?.actualSavingsRate ?? 0}%`, icon: PiggyBank, color: "text-primary", bgColor: "bg-primary/10" },
+                { label: "Objectives", value: `${goalsPercentage}%`, icon: Shield, color: "text-chart-3", bgColor: "bg-chart-3/10" },
+              ].map((item, idx) => (
+                <AnimateItem key={idx}>
+                  <HoverScale className="h-full">
+                    <Spotlight className="glass-card-3d p-4 h-full border-white/5" color="hsla(217, 91%, 60%, 0.05)">
+                      <div className="flex flex-col gap-3 relative z-10">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-inner", item.bgColor)}>
+                          <item.icon className={cn("w-5 h-5", item.color)} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60 mb-1">{item.label}</p>
+                          <p className="text-lg font-black text-white tracking-tighter">
+                            {typeof item.value === 'number' ? formatCurrency(item.value) : item.value}
+                          </p>
+                        </div>
+                      </div>
+                    </Spotlight>
+                  </HoverScale>
+                </AnimateItem>
+              ))}
             </div>
           </div>
-        )}
 
-        {/* Actions */}
-        <div className="space-y-2 sm:space-y-3">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 sm:gap-3 h-11 sm:h-12 text-xs sm:text-sm"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-            Edit Profile & Settings
-          </Button>
+          {/* Baseline Breakdown */}
+          {profile.expenseBreakdown.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Liability Infrastructure</h3>
+              <Spotlight className="glass-card-3d p-6 border-white/5" color="hsla(217, 91%, 60%, 0.05)">
+                <AnimateList className="space-y-4 relative z-10">
+                  {profile.expenseBreakdown.map((expense) => (
+                    <AnimateItem key={expense.id} className="flex items-center justify-between group">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm text-white group-hover:text-primary transition-colors">{expense.name}</p>
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">{expense.category}</p>
+                      </div>
+                      <p className="font-black text-sm text-white">{formatCurrency(expense.amount)}</p>
+                    </AnimateItem>
+                  ))}
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Monthly Baseline</p>
+                    <p className="font-black text-lg text-primary tracking-tighter shimmer-text">{formatCurrency(totalExpenses)}</p>
+                  </div>
+                </AnimateList>
+              </Spotlight>
+            </div>
+          )}
 
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 sm:gap-3 h-11 sm:h-12 text-xs sm:text-sm border-primary/50 text-primary hover:bg-primary/10"
-            onClick={handleDownloadReport}
-          >
-            <FileDown className="w-4 h-4 sm:w-5 sm:h-5" />
-            Download Monthly Report
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2 sm:gap-3 h-11 sm:h-12 border-destructive/50 text-destructive hover:bg-destructive/10 text-xs sm:text-sm"
-              >
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-                Logout & Reset Data
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will clear all your data including your profile, goals, and chat
-                  history. You will need to complete onboarding again.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleLogout}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          {/* System Actions */}
+          <div className="space-y-3 pt-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">System Operations</h3>
+            <div className="space-y-3">
+              <HoverScale>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between h-14 bg-white/5 border border-white/5 rounded-2xl px-6 hover:bg-primary/10 hover:border-primary/20 group transition-all"
+                  onClick={() => navigate("/settings")}
                 >
-                  Reset & Logout
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </main>
+                  <span className="flex items-center gap-4">
+                    <Settings className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
+                    <span className="font-black text-xs uppercase tracking-widest text-white">System Settings</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </HoverScale>
 
-      <BottomNav />
-    </div>
+              <HoverScale>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between h-14 bg-white/5 border border-white/5 rounded-2xl px-6 hover:bg-primary/10 hover:border-primary/20 group transition-all"
+                  onClick={handleDownloadReport}
+                >
+                  <span className="flex items-center gap-4">
+                    <FileDown className="w-5 h-5 text-primary" />
+                    <span className="font-black text-xs uppercase tracking-widest text-white">Deploy Monthly Report</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </HoverScale>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <HoverScale>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between h-14 bg-destructive/5 border border-destructive/10 rounded-2xl px-6 hover:bg-destructive/10 hover:border-destructive/20 group transition-all"
+                    >
+                      <span className="flex items-center gap-4">
+                        <LogOut className="w-5 h-5 text-destructive" />
+                        <span className="font-black text-xs uppercase tracking-widest text-destructive">Wipe All Databanks</span>
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-destructive/40" />
+                    </Button>
+                  </HoverScale>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="glass-card-3d border-white/10">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-black text-xl tracking-tight">Wipe Systematic Data?</AlertDialogTitle>
+                    <AlertDialogDescription className="font-medium">
+                      This operation is permanent. All profiles, goals, and intelligence patterns will be purged from the local cache.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="gap-2">
+                    <AlertDialogCancel className="font-bold border-white/10">Abort Purge</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleLogout}
+                      className="bg-destructive hover:bg-destructive/90 font-black text-xs uppercase tracking-widest"
+                    >
+                      Confirm Wipe
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </main>
+
+        <BottomNav />
+      </div>
+    </AnimatePage>
   );
 }

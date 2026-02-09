@@ -59,7 +59,7 @@ const categoryColorMap: Record<SubscriptionCategory, string> = {
     gaming: "hsl(260, 60%, 55%)",
     productivity: "hsl(210, 60%, 55%)",
     fitness: "hsl(35, 70%, 55%)",
-    news: "hsl(175, 65%, 50%)",
+    news: "hsl(217, 91%, 60%)",
     cloud: "hsl(220, 50%, 55%)",
     other: "hsl(220, 15%, 50%)",
 };

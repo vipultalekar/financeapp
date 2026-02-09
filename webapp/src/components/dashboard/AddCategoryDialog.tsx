@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -13,6 +13,7 @@ interface AddCategoryDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSave: (category: { categoryName: string; limit: number; icon: string; color: string }) => void;
+    initialData?: { categoryName: string; limit: number; icon: string; color: string };
 }
 
 const availableIcons = [
@@ -41,12 +42,30 @@ const availableColors = [
     { name: "Yellow", value: "#eab308" },
 ];
 
-export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDialogProps) {
+export function AddCategoryDialog({ open, onOpenChange, onSave, initialData }: AddCategoryDialogProps) {
     const [categoryName, setCategoryName] = useState("");
     const [limit, setLimit] = useState("");
     const [selectedIcon, setSelectedIcon] = useState("utensils");
     const [selectedColor, setSelectedColor] = useState("#3b82f6");
     const [errors, setErrors] = useState<{ name?: string; limit?: string }>({});
+
+    // Sync with initialData when it changes or dialog opens
+    useEffect(() => {
+        if (open) {
+            if (initialData) {
+                setCategoryName(initialData.categoryName);
+                setLimit(initialData.limit.toString());
+                setSelectedIcon(initialData.icon);
+                setSelectedColor(initialData.color);
+            } else {
+                setCategoryName("");
+                setLimit("");
+                setSelectedIcon("utensils");
+                setSelectedColor("#3b82f6");
+            }
+            setErrors({});
+        }
+    }, [initialData, open]);
 
     const handleSave = () => {
         const newErrors: { name?: string; limit?: string } = {};
@@ -104,7 +123,9 @@ export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDia
 
                 {/* Header - Fixed at top */}
                 <DialogHeader className="flex-none p-6 pb-2">
-                    <DialogTitle className="text-xl font-semibold">Create Budget Category</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold">
+                        {initialData ? "Edit Budget Category" : "Create Budget Category"}
+                    </DialogTitle>
                 </DialogHeader>
 
                 {/* Body - Scrollable */}
@@ -231,7 +252,7 @@ export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDia
                         onClick={handleSave}
                         className="flex-1 h-11 btn-3d bg-primary hover:bg-primary/90"
                     >
-                        Create Category
+                        {initialData ? "Save Changes" : "Create Category"}
                     </Button>
                 </div>
             </DialogContent>

@@ -43,6 +43,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AnimatePage, AnimateList, AnimateItem, HoverScale } from "@/components/effects/AnimatePage";
+import { Spotlight } from "@/components/effects/Spotlight";
+import { useConfetti } from "@/components/effects/Confetti";
+import { AnimatedProgress, AnimatedNumber } from "@/components/ui/AnimatedProgress";
 
 const categoryIcons: Record<GoalCategory, typeof Shield> = {
   "emergency-fund": Shield,
@@ -55,8 +59,8 @@ const categoryIcons: Record<GoalCategory, typeof Shield> = {
 };
 
 const categoryColors: Record<GoalCategory, string> = {
-  "emergency-fund": "hsl(175, 65%, 50%)",
-  vacation: "hsl(260, 50%, 60%)",
+  "emergency-fund": "hsl(217, 91%, 60%)",
+  vacation: "hsl(217, 91%, 60%)",
   car: "hsl(210, 60%, 55%)",
   house: "hsl(35, 70%, 55%)",
   education: "hsl(320, 45%, 55%)",
@@ -80,13 +84,12 @@ function GoalCard({
   const percentage = Math.round((goal.currentAmount / goal.targetAmount) * 100);
   const remaining = goal.targetAmount - goal.currentAmount;
 
-  // Calculate months to goal (assuming equal monthly contributions)
   const deadline = new Date(goal.deadline);
   const now = new Date();
   const monthsUntilDeadline = Math.max(
     0,
     (deadline.getFullYear() - now.getFullYear()) * 12 +
-      (deadline.getMonth() - now.getMonth())
+    (deadline.getMonth() - now.getMonth())
   );
   const monthlyNeeded =
     monthsUntilDeadline > 0 ? Math.ceil(remaining / monthsUntilDeadline) : remaining;
@@ -95,128 +98,120 @@ function GoalCard({
   const isComplete = percentage >= 100;
 
   return (
-    <div className="glass-card-3d p-4 sm:p-5 card-3d-hover">
-      {/* Header */}
-      <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
-        <div
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${color}20` }}
-        >
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm sm:text-base truncate">{goal.name}</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            {formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}
-          </p>
-        </div>
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 sm:h-8 sm:w-8"
-            onClick={onEdit}
+    <Spotlight
+      className={cn(
+        "glass-card-3d p-4 sm:p-5 transition-all duration-300 group",
+        isComplete && "border-primary/40 bg-primary/5"
+      )}
+      color={isComplete ? "hsla(217, 91%, 60%, 0.1)" : "hsla(217, 91%, 60%, 0.05)"}
+    >
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-4">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 group-hover:rotate-3 shadow-inner"
+            style={{ backgroundColor: `${color}20` }}
           >
-            <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:bg-destructive/10"
-            onClick={onDelete}
-          >
-            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </Button>
+            <Icon className="w-6 h-6" style={{ color }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm sm:text-base truncate tracking-tight">{goal.name}</h3>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+              {formatCurrency(goal.currentAmount)} OF {formatCurrency(goal.targetAmount)}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-white/5 rounded-lg"
+              onClick={onEdit}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-lg"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-5">
+          <div className="flex justify-between mb-2 text-[11px] font-black uppercase tracking-widest">
+            <span className={cn(isComplete ? "text-primary" : "text-muted-foreground")}>
+              {percentage}% Complete
+            </span>
+            <span className="text-white">
+              {isComplete ? "GOAL REACHED!" : `${formatCurrency(remaining)} TO GO`}
+            </span>
+          </div>
+          <AnimatedProgress
+            value={Math.min(percentage, 100)}
+            color={isComplete ? "primary" : "primary"}
+            size="md"
+            showGlow={isComplete}
+          />
+        </div>
+
+        {/* Timeline & Meta */}
+        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center bg-white/5",
+              isComplete && "bg-primary/20"
+            )}>
+              {isComplete ? <CheckCircle2 className="w-4 h-4 text-primary" /> : <TrendingUp className="w-4 h-4 text-muted-foreground" />}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground opacity-60">Monthly Target</span>
+              <span className="text-xs font-bold text-white">
+                {isComplete ? "Success" : monthsUntilDeadline > 0 ? `${formatCurrency(monthlyNeeded)}/mo` : "Overdue"}
+              </span>
+            </div>
+          </div>
+
+          <div className="text-right">
+            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground opacity-60">Target Date</p>
+            <p className="text-xs font-bold text-white">
+              {new Date(goal.deadline).toLocaleDateString("en-US", {
+                month: "short",
+                year: "numeric",
+              })}
+            </p>
+          </div>
         </div>
       </div>
-
-      {/* Progress */}
-      <div className="mb-3 sm:mb-4">
-        <Progress value={Math.min(percentage, 100)} className="h-2 sm:h-3" />
-        <div className="flex justify-between mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground">
-          <span>{percentage}% complete</span>
-          <span>
-            {isComplete ? "Goal reached!" : `${formatCurrency(remaining)} to go`}
-          </span>
-        </div>
-      </div>
-
-      {/* Timeline */}
-      <div className="flex items-center justify-between text-xs sm:text-sm">
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
-          <span className="truncate">
-            {isComplete ? (
-              <span className="text-success font-medium">Completed!</span>
-            ) : monthsUntilDeadline > 0 ? (
-              <>
-                <span className="font-semibold text-primary">
-                  {formatCurrency(monthlyNeeded)}/mo
-                </span>{" "}
-                <span className="hidden xs:inline">needed</span>
-              </>
-            ) : (
-              <span className="text-warning font-medium">Deadline passed</span>
-            )}
-          </span>
-        </div>
-        <span
-          className={cn(
-            "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full shrink-0",
-            isComplete
-              ? "bg-success/20 text-success"
-              : isOnTrack
-              ? "bg-primary/20 text-primary"
-              : "bg-warning/20 text-warning"
-          )}
-        >
-          {isComplete
-            ? "Done"
-            : monthsUntilDeadline > 0
-            ? `${monthsUntilDeadline}mo left`
-            : "Overdue"}
-        </span>
-      </div>
-
-      {/* Deadline */}
-      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/50">
-        <p className="text-[10px] sm:text-xs text-muted-foreground">
-          Target date:{" "}
-          {new Date(goal.deadline).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </p>
-      </div>
-    </div>
+    </Spotlight>
   );
 }
 
 function AddExtraSavings({
   goals,
   addExtraToGoal,
+  onSuccess,
 }: {
   goals: Goal[];
   addExtraToGoal: (goalId: string, amount: number) => void;
+  onSuccess: () => void;
 }) {
   const { formatCurrency } = useCurrency();
   const [extraAmount, setExtraAmount] = useState<string>("");
   const [selectedGoalId, setSelectedGoalId] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  // Clear success message after 3 seconds
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(""), 3000);
       return () => clearTimeout(timer);
     }
-    return undefined;
   }, [successMessage]);
 
-  if (goals.length === 0) {
-    return null;
-  }
+  if (goals.length === 0) return null;
 
   const selectedGoal = goals.find((g) => g.id === selectedGoalId);
   const selectedPercentage = selectedGoal
@@ -232,125 +227,102 @@ function AddExtraSavings({
 
   const handleAdd = () => {
     if (!canAdd || !selectedGoal) return;
-
     const effectiveAmount = Math.min(parsedAmount, selectedRemaining);
     addExtraToGoal(selectedGoalId, parsedAmount);
-    setSuccessMessage(
-      `Added ${formatCurrency(effectiveAmount)} to "${selectedGoal.name}"`
-    );
+    setSuccessMessage(`Added ${formatCurrency(effectiveAmount)} to "${selectedGoal.name}"`);
     setExtraAmount("");
+    onSuccess();
   };
 
   return (
-    <div className="glass-card-3d p-4 sm:p-5">
-      <h3 className="font-semibold text-sm sm:text-base mb-1.5 sm:mb-2">Add Extra Savings</h3>
-      <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-        Boost a goal by adding extra savings directly.
-      </p>
+    <Spotlight className="glass-card-3d p-5 sm:p-6" color="hsla(217, 91%, 60%, 0.1)">
+      <div className="relative z-10">
+        <h3 className="text-sm font-black uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2">
+          <Target className="w-4 h-4 text-primary" />
+          Quick Boost
+        </h3>
+        <p className="text-xs text-muted-foreground/60 font-medium mb-6">
+          Add extra savings directly to a specific goal.
+        </p>
 
-      {/* Goal selector */}
-      <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
-        <Select value={selectedGoalId} onValueChange={setSelectedGoalId}>
-          <SelectTrigger className="w-full text-sm">
-            <SelectValue placeholder="Select a goal" />
-          </SelectTrigger>
-          <SelectContent>
-            {goals.map((goal) => (
-              <SelectItem key={goal.id} value={goal.id}>
-                {goal.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Amount input */}
-        <Input
-          type="number"
-          min={0}
-          step={1}
-          placeholder="Extra amount to add"
-          value={extraAmount}
-          onChange={(e) => setExtraAmount(e.target.value)}
-          className="w-full text-sm"
-        />
-
-        <Button onClick={handleAdd} disabled={!canAdd} className="w-full text-xs sm:text-sm">
-          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-          Add to Goal
-        </Button>
-      </div>
-
-      {/* Success message */}
-      {successMessage ? (
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-success/10 text-success rounded-lg p-2.5 sm:p-3 mb-3 sm:mb-4">
-          <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-          <p className="text-xs sm:text-sm font-medium">{successMessage}</p>
-        </div>
-      ) : null}
-
-      {/* Selected goal progress */}
-      {selectedGoal ? (
-        <div className="bg-secondary/50 rounded-xl p-3 sm:p-4">
-          <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-            <span className="text-xs sm:text-sm font-medium truncate">{selectedGoal.name}</span>
-            <span className="text-xs sm:text-sm text-muted-foreground shrink-0 ml-2">
-              {selectedPercentage}%
-            </span>
+        <div className="space-y-4 mb-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Select Goal</label>
+            <Select value={selectedGoalId} onValueChange={setSelectedGoalId}>
+              <SelectTrigger className="w-full bg-white/5 border-white/5 rounded-xl h-11 text-xs">
+                <SelectValue placeholder="Which goal?" />
+              </SelectTrigger>
+              <SelectContent className="glass-card-3d">
+                {goals.map((goal) => (
+                  <SelectItem key={goal.id} value={goal.id} className="text-xs">
+                    {goal.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Progress
-            value={Math.min(selectedPercentage, 100)}
-            className="h-1.5 sm:h-2 mb-1.5 sm:mb-2"
-          />
-          <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground">
-            <span>{formatCurrency(selectedGoal.currentAmount)} saved</span>
-            <span>{formatCurrency(selectedGoal.targetAmount)} target</span>
-          </div>
-          {selectedRemaining > 0 ? (
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 sm:mt-2">
-              {formatCurrency(selectedRemaining)} remaining to reach this goal
-            </p>
-          ) : (
-            <p className="text-[10px] sm:text-xs text-success font-medium mt-1.5 sm:mt-2">
-              This goal has been reached!
-            </p>
-          )}
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
-function EmptyState({ onAddGoal }: { onAddGoal: () => void }) {
-  return (
-    <div className="glass-card-3d p-6 sm:p-8 text-center">
-      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-        <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Amount</label>
+            <div className="relative">
+              <Input
+                type="number"
+                min={0}
+                placeholder="0.00"
+                value={extraAmount}
+                onChange={(e) => setExtraAmount(e.target.value)}
+                className="w-full bg-white/5 border-white/5 rounded-xl h-11 h-12 text-lg font-black tracking-tight pl-4"
+              />
+            </div>
+          </div>
+
+          <HoverScale>
+            <Button onClick={handleAdd} disabled={!canAdd} className="w-full btn-3d bg-primary font-black uppercase tracking-widest text-xs h-12">
+              BOOST GOAL
+            </Button>
+          </HoverScale>
+        </div>
+
+        {successMessage && (
+          <div className="flex items-center gap-2 bg-success/10 text-white rounded-xl p-4 mb-6 border border-success/20 animate-in fade-in slide-in-from-top-2">
+            <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+            <p className="text-xs font-bold">{successMessage}</p>
+          </div>
+        )}
+
+        {selectedGoal && (
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-bold truncate text-muted-foreground">{selectedGoal.name}</span>
+              <span className="text-xs font-black text-white">{selectedPercentage}%</span>
+            </div>
+            <AnimatedProgress
+              value={Math.min(selectedPercentage, 100)}
+              size="sm"
+              className="mb-3"
+            />
+            <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
+              <span>{formatCurrency(selectedGoal.currentAmount)} SAVED</span>
+              <span>{formatCurrency(selectedGoal.targetAmount)} TARGET</span>
+            </div>
+          </div>
+        )}
       </div>
-      <h3 className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2">No goals yet</h3>
-      <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-xs mx-auto">
-        Set your first savings goal to start tracking your progress toward the things
-        that matter to you.
-      </p>
-      <Button onClick={onAddGoal} className="text-xs sm:text-sm">
-        <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-        Create Your First Goal
-      </Button>
-    </div>
+    </Spotlight>
   );
 }
 
 export default function Goals() {
   const { profile, addGoal, updateGoal, deleteGoal, addExtraToGoal, derivedFinancials } = useUserProfile();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, symbol } = useCurrency();
+  const { fire, ConfettiComponent } = useConfetti();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
   const [deleteConfirmGoal, setDeleteConfirmGoal] = useState<Goal | null>(null);
 
-  if (!profile) {
-    return null;
-  }
+  if (!profile) return null;
 
   const goals = profile.goals;
   const totalSaved = goals.reduce((sum, g) => sum + g.currentAmount, 0);
@@ -371,153 +343,174 @@ export default function Goals() {
   const handleFormSubmit = (goalData: Omit<Goal, "id" | "createdAt">) => {
     if (formMode === "add") {
       addGoal(goalData);
+      fire();
     } else if (editingGoal) {
       updateGoal(editingGoal.id, goalData);
-    }
-  };
-
-  const handleDeleteGoal = (goal: Goal) => {
-    setDeleteConfirmGoal(goal);
-  };
-
-  const confirmDelete = () => {
-    if (deleteConfirmGoal) {
-      deleteGoal(deleteConfirmGoal.id);
-      setDeleteConfirmGoal(null);
+      fire();
     }
   };
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <FloatingOrbs variant="subtle" />
+    <AnimatePage>
+      <ConfettiComponent />
+      <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
+        <FloatingOrbs variant="default" />
 
-      {/* Header */}
-      <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4">
-        <h1 className="text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1">Savings Goals</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          {goals.length > 0
-            ? "Track progress and adjust your plan"
-            : "Set goals to track your savings"}
-        </p>
-      </header>
+        {/* Header */}
+        <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-6">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight shimmer-text">Savings Goals</h1>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] opacity-60">
+            {goals.length > 0 ? "Track your financial freedom" : "Set your first target"}
+          </p>
+        </header>
 
-      <main className="relative z-10 px-4 sm:px-6 space-y-4 sm:space-y-6">
-        {goals.length > 0 ? (
-          <>
-            {/* Summary */}
-            <div className="glass-card-3d p-4 sm:p-6 text-center glow-teal">
-              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">
-                Total Saved Across Goals
-              </p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
-                {formatCurrency(totalSaved)}
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 sm:mt-2">
-                of {formatCurrency(totalTarget)} target
-              </p>
-              {totalTarget > 0 && (
-                <div className="mt-3 sm:mt-4">
-                  <Progress
-                    value={Math.min((totalSaved / totalTarget) * 100, 100)}
-                    className="h-1.5 sm:h-2"
-                  />
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
-                    {Math.round((totalSaved / totalTarget) * 100)}% overall progress
+        <main className="relative z-10 px-4 sm:px-6 space-y-6 pb-24">
+          {goals.length > 0 ? (
+            <>
+              {/* Summary */}
+              <HoverScale>
+                <div className="glass-card-3d p-6 sm:p-8 text-center glow-teal border-primary/20 bg-primary/5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                    Total Funds Saved
                   </p>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 shimmer-text">
+                    <AnimatedNumber value={totalSaved} prefix={symbol} />
+                  </div>
+                  <p className="text-xs font-bold text-muted-foreground/60 mb-6">
+                    Out of {formatCurrency(totalTarget)} target
+                  </p>
+                  {totalTarget > 0 && (
+                    <div className="max-w-xs mx-auto space-y-2">
+                      <AnimatedProgress
+                        value={Math.min((totalSaved / totalTarget) * 100, 100)}
+                        size="md"
+                        showGlow={true}
+                        className="h-2.5"
+                      />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+                        {Math.round((totalSaved / totalTarget) * 100)}% OVERALL PROGRESS
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </HoverScale>
+
+              {/* Goals List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Active Goals ({goals.length})
+                  </h3>
+                  <HoverScale>
+                    <Button
+                      onClick={handleAddGoal}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary/10 rounded-lg"
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" />
+                      New Goal
+                    </Button>
+                  </HoverScale>
+                </div>
+
+                <AnimateList className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {goals.map((goal) => (
+                    <AnimateItem key={goal.id}>
+                      <HoverScale className="h-full">
+                        <GoalCard
+                          goal={goal}
+                          onEdit={() => handleEditGoal(goal)}
+                          onDelete={() => setDeleteConfirmGoal(goal)}
+                        />
+                      </HoverScale>
+                    </AnimateItem>
+                  ))}
+                </AnimateList>
+              </div>
+
+              {/* Quick Boost */}
+              <div className="space-y-3">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">
+                  Management
+                </h3>
+                <AddExtraSavings goals={goals} addExtraToGoal={addExtraToGoal} onSuccess={fire} />
+              </div>
+
+              {/* AI Insight */}
+              {derivedFinancials && (
+                <div className="glass-card-3d p-6 bg-primary/5 border-primary/20 shadow-xl">
+                  <div className="flex gap-4 items-start">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-primary">Smart Analysis</p>
+                      <p className="text-sm font-bold leading-relaxed text-foreground">
+                        {derivedFinancials.actualSavingsRate >= 20
+                          ? `Exceptional! You're saving ${derivedFinancials.actualSavingsRate}% of your income. You're well on your way to hitting all targets ahead of schedule.`
+                          : derivedFinancials.actualSavingsRate >= 10
+                            ? `Solid progress. At a ${derivedFinancials.actualSavingsRate}% savings rate, you're tracking well, though reaching ${profile.savingsTargetPercentage}% would accelerate your freedom.`
+                            : `Your savings rate is ${derivedFinancials.actualSavingsRate}%. We recommend reviewing non-essential spending to give your goals the momentum they deserve.`}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Goals */}
-            <div>
-              <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Your Goals ({goals.length})
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-primary hover:text-primary/80 text-xs sm:text-sm"
-                  onClick={handleAddGoal}
-                >
-                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
-                  Add Goal
+            </>
+          ) : (
+            <div className="empty-state-calm py-20 bg-card/20 rounded-3xl border border-white/5 backdrop-blur-sm text-center">
+              <div className="empty-icon w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-primary/5 rounded-full">
+                <Target className="w-10 h-10 text-primary animate-gentle-float" />
+              </div>
+              <h3 className="empty-title text-xl font-black text-white tracking-tight">Focus Your Wealth</h3>
+              <p className="empty-description text-sm opacity-60 max-w-[280px] mx-auto mb-8 font-medium">
+                Saving is easier when you have a purpose. Set your first goal to visualize your future success.
+              </p>
+              <HoverScale>
+                <Button onClick={handleAddGoal} className="btn-3d px-8 bg-primary font-black uppercase tracking-widest text-xs h-12">
+                  CREATE YOUR FIRST GOAL
                 </Button>
-              </div>
-              <div className="space-y-3 sm:space-y-4">
-                {goals.map((goal) => (
-                  <GoalCard
-                    key={goal.id}
-                    goal={goal}
-                    onEdit={() => handleEditGoal(goal)}
-                    onDelete={() => handleDeleteGoal(goal)}
-                  />
-                ))}
-              </div>
+              </HoverScale>
             </div>
+          )}
+        </main>
 
-            {/* Add Extra Savings */}
-            <div>
-              <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 sm:mb-3">
-                Add Extra Savings
-              </h3>
-              <AddExtraSavings goals={goals} addExtraToGoal={addExtraToGoal} />
-            </div>
+        <GoalForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          onSubmit={handleFormSubmit}
+          initialData={editingGoal}
+          mode={formMode}
+        />
 
-            {/* AI tip based on real data */}
-            {derivedFinancials && (
-              <div className="glass-card p-4 sm:p-5 bg-primary/5 border-primary/20">
-                <p className="text-xs sm:text-sm">
-                  <span className="font-semibold text-primary">Tip:</span>{" "}
-                  {derivedFinancials.actualSavingsRate >= 20
-                    ? `You're saving ${derivedFinancials.actualSavingsRate}% of your income this month - excellent! Keep this up and you'll reach your goals faster than planned.`
-                    : derivedFinancials.actualSavingsRate >= 10
-                    ? `You're saving ${derivedFinancials.actualSavingsRate}% of your income. Try to hit ${profile.savingsTargetPercentage}% to stay on track with your goals.`
-                    : `Your savings rate is ${derivedFinancials.actualSavingsRate}% this month. Consider reviewing your expenses to find ways to save more toward your goals.`}
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <EmptyState onAddGoal={handleAddGoal} />
-        )}
-      </main>
+        <AlertDialog open={!!deleteConfirmGoal} onOpenChange={(open) => !open && setDeleteConfirmGoal(null)}>
+          <AlertDialogContent className="glass-card-3d border-white/10">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-black text-xl tracking-tight">Discard Goal?</AlertDialogTitle>
+              <AlertDialogDescription className="font-medium text-muted-foreground">
+                This will permanently remove "{deleteConfirmGoal?.name}" and all tracked progress.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel className="font-bold border-white/10">Keep It</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteConfirmGoal) {
+                    deleteGoal(deleteConfirmGoal.id);
+                    setDeleteConfirmGoal(null);
+                  }
+                }}
+                className="bg-destructive hover:bg-destructive/90 font-bold"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      {/* Goal Form Sheet */}
-      <GoalForm
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSubmit={handleFormSubmit}
-        initialData={editingGoal}
-        mode={formMode}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!deleteConfirmGoal}
-        onOpenChange={(open) => !open && setDeleteConfirmGoal(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Goal</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirmGoal?.name}"? This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <BottomNav />
-    </div>
+        <BottomNav />
+      </div>
+    </AnimatePage>
   );
 }

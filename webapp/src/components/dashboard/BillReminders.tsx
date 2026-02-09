@@ -51,7 +51,7 @@ const categoryIconMap: Record<BillCategory, typeof Home> = {
 
 // Category colors
 const categoryColorMap: Record<BillCategory, string> = {
-    rent: "hsl(175, 65%, 50%)",
+    rent: "hsl(217, 91%, 60%)",
     creditCard: "hsl(260, 60%, 55%)",
     emi: "hsl(35, 70%, 55%)",
     utilities: "hsl(210, 60%, 55%)",
@@ -219,7 +219,7 @@ export function BillReminders() {
                                                 <span className="font-medium text-sm">{formatCurrency(bill.amount)}</span>
                                                 <button
                                                     onClick={() => handleMarkPaid(bill.id, bill.name)}
-                                                    className="p-1 rounded-md bg-success/20 text-success hover:bg-success/30"
+                                                    className="p-1 rounded-md bg-success/20 text-white hover:bg-success/30"
                                                     title="Mark as paid"
                                                 >
                                                     <Check className="w-3.5 h-3.5" />
@@ -277,7 +277,7 @@ export function BillReminders() {
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => handleMarkPaid(bill.id, bill.name)}
-                                        className="p-1.5 rounded-md bg-success/10 text-success hover:bg-success/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="p-1.5 rounded-md bg-success/10 text-white hover:bg-success/20 opacity-0 group-hover:opacity-100 transition-opacity"
                                         title="Mark as paid"
                                     >
                                         <Check className="w-4 h-4" />
@@ -308,7 +308,7 @@ export function BillReminders() {
             {paidBills.length > 0 && (
                 <div className="pt-2">
                     <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                        <Check className="w-3 h-3 text-success" />
+                        <Check className="w-3 h-3 text-white" />
                         Paid this month
                     </p>
                     <div className="space-y-2">

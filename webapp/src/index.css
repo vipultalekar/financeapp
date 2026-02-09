@@ -11,105 +11,61 @@
 
 @layer base {
   :root {
-    /* Deep charcoal/near-black backgrounds */
-    --background: 220 20% 6%;
-    --foreground: 210 20% 95%;
+    /* Deep black background as primary vibe */
+    --background: 240 10% 2%;
+    --foreground: 0 0% 100%;
 
-    /* Glassmorphism-lite cards */
-    --card: 220 20% 9%;
-    --card-foreground: 210 20% 95%;
+    /* Premium dark cards */
+    --card: 240 5% 6%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 20% 9%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 240 5% 6%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Soft teal primary - calm, trustworthy */
-    --primary: 175 65% 50%;
-    --primary-foreground: 220 20% 6%;
+    /* Blue as the vibrant accent/primary action color */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - slightly lighter charcoal */
-    --secondary: 220 15% 14%;
-    --secondary-foreground: 210 20% 95%;
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted states */
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 60%;
 
-    /* Soft purple accent */
-    --accent: 260 50% 60%;
-    --accent-foreground: 210 20% 95%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Muted success - no harsh neon green */
-    --success: 160 45% 45%;
-    --success-foreground: 210 20% 95%;
+    /* Basic status colors */
+    --success: 0 0% 100%;
+    --warning: 35 91% 60%;
+    --destructive: 0 84% 60%;
 
-    /* Soft warning - not harsh */
-    --warning: 35 70% 55%;
-    --warning-foreground: 220 20% 6%;
-
-    /* Soft destructive - no scary red */
-    --destructive: 0 40% 50%;
-    --destructive-foreground: 210 20% 95%;
-
-    --border: 220 15% 16%;
-    --input: 220 15% 16%;
-    --ring: 175 65% 50%;
+    --border: 240 5% 15%;
+    --input: 240 5% 12%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
-    /* Gradient colors for soft glows */
-    --glow-teal: 175 65% 50%;
-    --glow-purple: 260 50% 60%;
-    --glow-blue: 210 60% 55%;
-
-    /* Chart colors - soft and harmonious */
-    --chart-1: 175 65% 50%;
-    --chart-2: 260 50% 60%;
-    --chart-3: 210 60% 55%;
-    --chart-4: 35 70% 55%;
-    --chart-5: 320 45% 55%;
-
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 175 65% 50%;
-    --sidebar-primary-foreground: 220 20% 6%;
-    --sidebar-accent: 220 15% 14%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 220 15% 16%;
-    --sidebar-ring: 175 65% 50%;
+    /* Chart colors - simplified */
+    --chart-1: 217 91% 60%;
+    --chart-2: 0 0% 100%;
+    --chart-3: 240 5% 30%;
+    --chart-4: 0 0% 100%;
+    --chart-5: 35 91% 60%;
   }
 
   .dark {
-    --background: 220 20% 6%;
-    --foreground: 210 20% 95%;
-    --card: 220 20% 9%;
-    --card-foreground: 210 20% 95%;
-    --popover: 220 20% 9%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 175 65% 50%;
-    --primary-foreground: 220 20% 6%;
-    --secondary: 220 15% 14%;
-    --secondary-foreground: 210 20% 95%;
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 50%;
-    --accent: 260 50% 60%;
-    --accent-foreground: 210 20% 95%;
-    --success: 160 45% 45%;
-    --success-foreground: 210 20% 95%;
-    --warning: 35 70% 55%;
-    --warning-foreground: 220 20% 6%;
-    --destructive: 0 40% 50%;
-    --destructive-foreground: 210 20% 95%;
-    --border: 220 15% 16%;
-    --input: 220 15% 16%;
-    --ring: 175 65% 50%;
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 175 65% 50%;
-    --sidebar-primary-foreground: 220 20% 6%;
-    --sidebar-accent: 220 15% 14%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 220 15% 16%;
-    --sidebar-ring: 175 65% 50%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 100%;
+    --card: 240 5% 10%;
+    --card-foreground: 0 0% 100%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 15%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+    --border: 240 5% 18%;
   }
 }
 
@@ -134,15 +90,15 @@
   }
 
   h1 {
-    @apply text-3xl md:text-4xl font-bold;
+    @apply text-2xl md:text-4xl font-bold;
   }
 
   h2 {
-    @apply text-2xl md:text-3xl font-semibold;
+    @apply text-xl md:text-3xl font-semibold;
   }
 
   h3 {
-    @apply text-xl md:text-2xl font-semibold;
+    @apply text-lg md:text-2xl font-semibold;
   }
 }
 
@@ -150,25 +106,23 @@
 
   /* Glassmorphism card effect */
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl;
+    @apply bg-card border border-white/5;
+    border-radius: 1rem;
   }
 
-  /* Enhanced glass card with gradient border */
+  /* Enhanced glass card with solid border */
   .glass-card-3d {
-    @apply bg-card/80 backdrop-blur-xl rounded-2xl relative overflow-hidden;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(hsl(var(--card) / 0.8), hsl(var(--card) / 0.8)) padding-box,
-      linear-gradient(135deg, hsla(175, 65%, 50%, 0.3), hsla(260, 50%, 60%, 0.2), hsla(210, 60%, 55%, 0.1)) border-box;
+    @apply bg-card/80 border border-white/10 shadow-2xl transition-all duration-500 relative overflow-hidden;
+    border-radius: 1.25rem;
   }
 
   /* Soft glow effects for charts */
   .glow-teal {
-    box-shadow: 0 0 40px hsla(175, 65%, 50%, 0.15);
+    box-shadow: 0 0 40px hsla(217, 91%, 60%, 0.15);
   }
 
   .glow-purple {
-    box-shadow: 0 0 40px hsla(260, 50%, 60%, 0.15);
+    box-shadow: 0 0 40px hsla(217, 91%, 60%, 0.15);
   }
 
   .glow-blue {
@@ -178,47 +132,40 @@
   /* Intense glow for focused elements */
   .glow-teal-intense {
     box-shadow:
-      0 0 20px hsla(175, 65%, 50%, 0.3),
-      0 0 40px hsla(175, 65%, 50%, 0.2),
-      0 0 60px hsla(175, 65%, 50%, 0.1);
+      0 0 20px hsla(217, 91%, 60%, 0.3),
+      0 0 40px hsla(217, 91%, 60%, 0.2),
+      0 0 60px hsla(217, 91%, 60%, 0.1);
   }
 
   .glow-purple-intense {
     box-shadow:
-      0 0 20px hsla(260, 50%, 60%, 0.3),
-      0 0 40px hsla(260, 50%, 60%, 0.2),
-      0 0 60px hsla(260, 50%, 60%, 0.1);
+      0 0 20px hsla(217, 91%, 60%, 0.3),
+      0 0 40px hsla(217, 91%, 60%, 0.2),
+      0 0 60px hsla(217, 91%, 60%, 0.1);
   }
 
-  /* Gradient text */
+  /* Solid text colors - no gradients */
   .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(175, 65%, 50%), hsl(260, 50%, 60%));
+    @apply text-foreground;
   }
 
   .gradient-text-animated {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(175, 65%, 50%), hsl(260, 50%, 60%), hsl(210, 60%, 55%), hsl(175, 65%, 50%));
-    background-size: 300% 300%;
-    animation: gradient-shift 8s ease infinite;
+    @apply text-primary;
   }
 
-  /* Soft gradient backgrounds */
+  /* Simple backgrounds */
   .gradient-bg-soft {
-    background: linear-gradient(135deg, hsla(175, 65%, 50%, 0.1), hsla(260, 50%, 60%, 0.1));
+    background: hsla(217, 91%, 60%, 0.1);
   }
 
-  /* Hero gradient background */
+  /* Simple background */
   .gradient-hero {
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(175, 65%, 50%, 0.15) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsla(260, 50%, 60%, 0.1) 0%, transparent 50%),
-      hsl(var(--background));
+    background: hsl(var(--background));
   }
 
   /* Safe space for bottom navigation */
   .pb-nav {
-    padding-bottom: 5.5rem;
+    padding-bottom: 8rem;
   }
 
   /* 3D Card effects */
@@ -242,7 +189,7 @@
     box-shadow:
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06),
-      0 10px 15px -3px hsla(175, 65%, 50%, 0.1);
+      0 10px 15px -3px hsla(217, 91%, 60%, 0.1);
   }
 
   .btn-3d:hover {
@@ -250,7 +197,7 @@
     box-shadow:
       0 10px 15px -3px rgba(0, 0, 0, 0.1),
       0 4px 6px -2px rgba(0, 0, 0, 0.05),
-      0 20px 25px -5px hsla(175, 65%, 50%, 0.15);
+      0 20px 25px -5px hsla(217, 91%, 60%, 0.15);
   }
 
   .btn-3d:active {
@@ -272,13 +219,7 @@
     position: absolute;
     inset: -1px;
     border-radius: inherit;
-    background: linear-gradient(135deg,
-        hsla(175, 65%, 50%, 0.5),
-        hsla(260, 50%, 60%, 0.5),
-        hsla(210, 60%, 55%, 0.5),
-        hsla(175, 65%, 50%, 0.5));
-    background-size: 300% 300%;
-    animation: gradient-shift 4s ease infinite;
+    background: hsla(217, 91%, 60%, 0.5);
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -333,12 +274,12 @@
 
   /* Chart shadow for depth */
   .chart-shadow {
-    filter: drop-shadow(0 10px 20px hsla(175, 65%, 50%, 0.2));
+    filter: drop-shadow(0 10px 20px hsla(217, 91%, 60%, 0.2));
   }
 
   /* Ring chart glow */
   .ring-glow {
-    filter: drop-shadow(0 0 10px hsla(175, 65%, 50%, 0.3));
+    filter: drop-shadow(0 0 10px hsla(217, 91%, 60%, 0.3));
   }
 
   /* ===== MICRO-INTERACTIONS ===== */
@@ -357,7 +298,7 @@
     height: 100%;
     background: linear-gradient(90deg,
         transparent,
-        hsla(175, 65%, 50%, 0.3),
+        hsla(217, 91%, 60%, 0.3),
         transparent);
     animation: progress-shimmer 2s ease-in-out infinite;
   }
@@ -474,7 +415,7 @@
   /* Success toast animation container */
   .success-toast {
     @apply fixed bottom-24 left-1/2 -translate-x-1/2 z-50;
-    @apply bg-success/90 text-success-foreground px-4 py-2 rounded-full;
+    @apply bg-success/90 text-white-foreground px-4 py-2 rounded-full;
     @apply flex items-center gap-2 text-sm font-medium;
     @apply shadow-lg backdrop-blur-sm;
     animation: toast-slide-up 0.3s ease-out, toast-fade-out 0.3s ease-in 1.7s forwards;
@@ -489,7 +430,7 @@
     content: '';
     position: absolute;
     inset: -4px -8px;
-    background: hsla(175, 65%, 50%, 0.1);
+    background: hsla(217, 91%, 60%, 0.1);
     border-radius: 8px;
     opacity: 0;
     animation: number-glow 0.5s ease-out forwards;
@@ -512,7 +453,7 @@
     height: 100%;
     top: 50%;
     left: 50%;
-    background: radial-gradient(circle, hsla(175, 65%, 50%, 0.3) 0%, transparent 60%);
+    background: radial-gradient(circle, hsla(217, 91%, 60%, 0.3) 0%, transparent 60%);
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
     transition: transform 0.4s ease-out, opacity 0.4s ease-out;
@@ -717,11 +658,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 10px hsla(175, 65%, 50%, 0.3);
+    box-shadow: 0 0 10px hsla(217, 91%, 60%, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 20px hsla(175, 65%, 50%, 0.5);
+    box-shadow: 0 0 20px hsla(217, 91%, 60%, 0.5);
   }
 }
 
@@ -764,6 +705,96 @@
   }
 }
 
+
+/* Spotlight effect */
+.spotlight-container {
+  @apply relative overflow-hidden;
+}
+
+.spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsla(217, 91%, 60%, 0.1),
+      transparent 80%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.spotlight-container:hover .spotlight {
+  opacity: 1;
+}
+
+/* Rotating gradient border */
+.animated-gradient-border {
+  position: relative;
+  padding: 1px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.animated-gradient-border::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: conic-gradient(from 0deg,
+      transparent 0 25%,
+      hsla(217, 91%, 60%, 0.5) 25% 50%,
+      transparent 50% 75%,
+      hsla(217, 91%, 60%, 0.5) 75% 100%);
+  animation: rotate 4s linear infinite;
+  z-index: -1;
+}
+
+.animated-gradient-border::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: hsl(var(--card));
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Magnetic feel for interactive elements */
+.magnetic {
+  @apply transition-transform duration-200 ease-out;
+}
+
+/* Shimmer text effect */
+.shimmer-text {
+  background: linear-gradient(90deg,
+      hsl(var(--foreground)) 0%,
+      hsla(var(--foreground), 0.4) 25%,
+      hsl(var(--foreground)) 50%,
+      hsla(var(--foreground), 0.4) 75%,
+      hsl(var(--foreground)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-text 5s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer-text {
+  to {
+    background-position: 200% center;
+  }
+}
 
 /* Custom scrollbar for the app */
 ::-webkit-scrollbar {

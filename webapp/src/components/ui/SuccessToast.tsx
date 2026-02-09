@@ -36,7 +36,7 @@ export function SuccessToast({
         <div
             className={cn(
                 "fixed bottom-24 left-1/2 -translate-x-1/2 z-50",
-                "bg-success/90 text-success-foreground px-4 py-2.5 rounded-full",
+                "bg-success/90 text-white-foreground px-4 py-2.5 rounded-full",
                 "flex items-center gap-2 text-sm font-medium",
                 "shadow-lg backdrop-blur-sm",
                 "transition-all duration-300",

@@ -82,7 +82,7 @@ export function CashFlowTrend() {
         <div
           className="absolute inset-0 opacity-50 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse 80% 50% at 50% 100%, hsla(175, 65%, 50%, 0.15) 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 80% 50% at 50% 100%, hsla(217, 91%, 60%, 0.15) 0%, transparent 70%)`,
           }}
         />
 
@@ -94,9 +94,9 @@ export function CashFlowTrend() {
             <defs>
               {/* Enhanced gradient with glow effect */}
               <linearGradient id="cashGradientEnhanced" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(175, 65%, 50%)" stopOpacity={0.4} />
-                <stop offset="50%" stopColor="hsl(175, 65%, 50%)" stopOpacity={0.15} />
-                <stop offset="100%" stopColor="hsl(175, 65%, 50%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4} />
+                <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
               </linearGradient>
               {/* Glow filter for the line */}
               <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -111,7 +111,7 @@ export function CashFlowTrend() {
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "hsl(220, 10%, 50%)", fontSize: 11 }}
+              tick={{ fill: "hsl(220, 10%, 50%)", fontSize: 13 }}
               dy={8}
             />
             <YAxis
@@ -129,7 +129,7 @@ export function CashFlowTrend() {
             <Area
               type="monotone"
               dataKey="balance"
-              stroke="hsl(175, 65%, 50%)"
+              stroke="hsl(217, 91%, 60%)"
               strokeWidth={3}
               fill="url(#cashGradientEnhanced)"
               style={{ filter: "url(#glow)" }}
@@ -143,16 +143,16 @@ export function CashFlowTrend() {
       {/* Summary stats */}
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/50">
         <div className="text-center">
-          <p className="text-xs text-muted-foreground">Started</p>
-          <p className="text-sm font-semibold">{formatCurrency(profile.monthlyIncome)}</p>
+          <p className="text-sm text-muted-foreground">Started</p>
+          <p className="text-base font-semibold">{formatCurrency(profile.monthlyIncome)}</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-muted-foreground">Spent</p>
-          <p className="text-sm font-semibold text-accent">{formatCurrency(derivedFinancials.spent)}</p>
+          <p className="text-sm text-muted-foreground">Spent</p>
+          <p className="text-base font-semibold text-accent">{formatCurrency(derivedFinancials.spent)}</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-muted-foreground">Remaining</p>
-          <p className="text-sm font-semibold text-primary">{formatCurrency(derivedFinancials.saved)}</p>
+          <p className="text-sm text-muted-foreground">Remaining</p>
+          <p className="text-base font-semibold text-primary">{formatCurrency(derivedFinancials.saved)}</p>
         </div>
       </div>
     </div>

@@ -7,7 +7,6 @@ import {
   Tv,
   Shield,
   MoreHorizontal,
-  Info,
   Plus,
   X,
   Utensils,
@@ -17,15 +16,21 @@ import {
   Heart,
   GraduationCap,
   Calendar,
+  TrendingUp,
+  BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AnimatePage, AnimateList, AnimateItem, HoverScale } from "@/components/effects/AnimatePage";
+import { Spotlight } from "@/components/effects/Spotlight";
+import { AnimatedProgress, AnimatedNumber } from "@/components/ui/AnimatedProgress";
+import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
+import { useConfetti } from "@/components/effects/Confetti";
 import {
   Sheet,
   SheetContent,
@@ -44,7 +49,6 @@ import { SubscriptionTracker } from "@/components/dashboard/SubscriptionTracker"
 import { BillReminders } from "@/components/dashboard/BillReminders";
 import type { VariableExpenseCategory } from "@/lib/types";
 
-// Fixed expense icon map
 const fixedIconMap: Record<string, typeof HomeIcon> = {
   rent: HomeIcon,
   utilities: Zap,
@@ -53,7 +57,6 @@ const fixedIconMap: Record<string, typeof HomeIcon> = {
   other: MoreHorizontal,
 };
 
-// Variable expense category icon map
 const categoryIconMap: Record<VariableExpenseCategory, typeof Utensils> = {
   food: Utensils,
   transport: Car,
@@ -64,18 +67,16 @@ const categoryIconMap: Record<VariableExpenseCategory, typeof Utensils> = {
   other: MoreHorizontal,
 };
 
-// Variable expense category colors
 const categoryColorMap: Record<VariableExpenseCategory, string> = {
-  food: "hsl(35, 70%, 55%)",
-  transport: "hsl(210, 60%, 55%)",
-  shopping: "hsl(320, 45%, 55%)",
-  entertainment: "hsl(260, 50%, 60%)",
-  health: "hsl(0, 50%, 55%)",
-  education: "hsl(175, 65%, 50%)",
-  other: "hsl(220, 15%, 50%)",
+  food: "hsl(217, 91%, 60%)",
+  transport: "hsl(217, 91%, 70%)",
+  shopping: "hsl(217, 91%, 50%)",
+  entertainment: "hsl(217, 91%, 80%)",
+  health: "hsl(217, 91%, 40%)",
+  education: "hsl(217, 91%, 60%)",
+  other: "hsl(240, 5%, 50%)",
 };
 
-// Category display labels
 const categoryLabels: Record<VariableExpenseCategory, string> = {
   food: "Food",
   transport: "Transport",
@@ -87,12 +88,12 @@ const categoryLabels: Record<VariableExpenseCategory, string> = {
 };
 
 const FIXED_COLORS = [
-  "hsl(175, 65%, 50%)",
-  "hsl(260, 50%, 60%)",
-  "hsl(210, 60%, 55%)",
-  "hsl(35, 70%, 55%)",
-  "hsl(320, 45%, 55%)",
-  "hsl(220, 15%, 40%)",
+  "hsl(217, 91%, 60%)",
+  "hsl(217, 91%, 45%)",
+  "hsl(217, 91%, 75%)",
+  "hsl(240, 5%, 40%)",
+  "hsl(217, 91%, 30%)",
+  "hsl(240, 5%, 60%)",
 ];
 
 const ALL_CATEGORIES: VariableExpenseCategory[] = [
@@ -114,109 +115,72 @@ export default function Insights() {
     removeMonthlyExpense,
   } = useUserProfile();
   const { formatCurrency, symbol } = useCurrency();
+  const { fire, ConfettiComponent } = useConfetti();
 
-  // Add expense form state
   const [sheetOpen, setSheetOpen] = useState(false);
   const [expenseName, setExpenseName] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
   const [expenseCategory, setExpenseCategory] = useState<VariableExpenseCategory>("food");
 
-  // Fixed expenses breakdown
   const spendingCategories = useMemo(() => {
     if (!profile || profile.expenseBreakdown.length === 0) return [];
-
-    const totalExpenses = profile.expenseBreakdown.reduce(
-      (sum, item) => sum + item.amount,
-      0
-    );
-
+    const totalExpenses = profile.expenseBreakdown.reduce((sum, item) => sum + item.amount, 0);
     return profile.expenseBreakdown.map((item, index) => ({
       id: item.id,
       name: item.name,
       category: item.category,
       amount: item.amount,
-      percentage:
-        totalExpenses > 0
-          ? Math.round((item.amount / totalExpenses) * 100)
-          : 0,
+      percentage: totalExpenses > 0 ? Math.round((item.amount / totalExpenses) * 100) : 0,
       color: FIXED_COLORS[index % FIXED_COLORS.length],
     }));
   }, [profile]);
 
-  // Variable expenses total
   const variableExpensesTotal = useMemo(() => {
     return currentMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
   }, [currentMonthExpenses]);
 
-  // Sorted expenses (most recent first)
   const sortedMonthExpenses = useMemo(() => {
-    return [...currentMonthExpenses].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    return [...currentMonthExpenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [currentMonthExpenses]);
 
-  // Monthly summary values
   const totalIncome = profile?.monthlyIncome ?? 0;
   const fixedExpenses = profile?.fixedExpenses ?? 0;
   const totalSpent = fixedExpenses + variableExpensesTotal;
   const amountSaved = Math.max(0, totalIncome - totalSpent);
-  const savingsRate =
-    totalIncome > 0 ? Math.round((amountSaved / totalIncome) * 100) : 0;
+  const savingsRate = totalIncome > 0 ? Math.round((amountSaved / totalIncome) * 100) : 0;
 
-  // Generate insights based on actual data
   const insights = useMemo(() => {
     if (!profile || !derivedFinancials) return [];
+    const result: Array<{ category: string; insight: string; suggestion: string }> = [];
 
-    const result: Array<{
-      category: string;
-      insight: string;
-      suggestion: string;
-    }> = [];
-
-    // Fixed expenses ratio insight
-    const fixedRatio = Math.round(
-      (fixedExpenses / profile.monthlyIncome) * 100
-    );
+    const fixedRatio = Math.round((fixedExpenses / profile.monthlyIncome) * 100);
     if (fixedRatio > 50) {
       result.push({
         category: "Fixed Expenses",
-        insight: `Your fixed expenses are ${fixedRatio}% of your income, which is above the recommended 50%.`,
-        suggestion:
-          "Consider reviewing subscriptions or negotiating bills to reduce fixed costs.",
+        insight: `Your fixed expenses are ${fixedRatio}% of your income.`,
+        suggestion: "Consider reviewing subscriptions to reduce fixed costs.",
       });
     }
 
-    // Savings rate insight
     if (savingsRate < profile.savingsTargetPercentage) {
       result.push({
-        category: "Savings",
-        insight: `You're saving ${savingsRate}% but targeting ${profile.savingsTargetPercentage}%.`,
-        suggestion: `Try to reduce variable spending by ${formatCurrency(
-          ((profile.savingsTargetPercentage - savingsRate) *
-            profile.monthlyIncome) /
-          100
-        )} to hit your goal.`,
+        category: "Savings Goal",
+        insight: `You're saving ${savingsRate}% (target is ${profile.savingsTargetPercentage}%).`,
+        suggestion: `Reduce spending by ${formatCurrency(((profile.savingsTargetPercentage - savingsRate) * profile.monthlyIncome) / 100)} to hit your goal.`,
       });
     } else if (savingsRate > profile.savingsTargetPercentage) {
       result.push({
-        category: "Great Progress",
-        insight: `You're saving ${savingsRate}% - that's ${savingsRate - profile.savingsTargetPercentage
-          }% above your target!`,
-        suggestion:
-          "Consider putting the extra savings toward your goals or an emergency fund.",
+        category: "Great Momentum",
+        insight: `You're saving ${savingsRate}% - that's ${savingsRate - profile.savingsTargetPercentage}% above your target.`,
+        suggestion: "Consider investing the extra savings toward your long-term goals.",
       });
     }
 
-    // Variable spending insights by category
     if (currentMonthExpenses.length > 0) {
-      const categoryTotals: Partial<Record<VariableExpenseCategory, number>> =
-        {};
+      const categoryTotals: Partial<Record<VariableExpenseCategory, number>> = {};
       for (const expense of currentMonthExpenses) {
-        categoryTotals[expense.category] =
-          (categoryTotals[expense.category] ?? 0) + expense.amount;
+        categoryTotals[expense.category] = (categoryTotals[expense.category] ?? 0) + expense.amount;
       }
-
-      // Find highest spending category
       let highestCategory: VariableExpenseCategory | null = null;
       let highestAmount = 0;
       for (const [cat, amount] of Object.entries(categoryTotals)) {
@@ -225,446 +189,347 @@ export default function Insights() {
           highestCategory = cat as VariableExpenseCategory;
         }
       }
-
       if (highestCategory && variableExpensesTotal > 0) {
-        const pct = Math.round(
-          (highestAmount / variableExpensesTotal) * 100
-        );
+        const pct = Math.round((highestAmount / variableExpensesTotal) * 100);
         if (pct > 40) {
           result.push({
-            category: `${categoryLabels[highestCategory]} Spending`,
-            insight: `${categoryLabels[highestCategory]} accounts for ${pct}% of your variable spending this month (${formatCurrency(highestAmount)}).`,
-            suggestion:
-              "Look for ways to optimize here - meal prep, carpooling, or finding deals.",
+            category: `${categoryLabels[highestCategory]} Spike`,
+            insight: `${categoryLabels[highestCategory]} accounts for ${pct}% of your variable spending.`,
+            suggestion: "Look for opportunities to optimize meal prep or transport costs.",
           });
         }
       }
-
-      // Total variable vs available budget
-      const targetSavings = Math.round(
-        profile.monthlyIncome * (profile.savingsTargetPercentage / 100)
-      );
-      const budget =
-        profile.monthlyIncome - profile.fixedExpenses - targetSavings;
-      if (variableExpensesTotal > budget && budget > 0) {
-        result.push({
-          category: "Over Budget",
-          insight: `You've spent ${formatCurrency(variableExpensesTotal)} on variable expenses, which is ${formatCurrency(variableExpensesTotal - budget)} over your budget.`,
-          suggestion:
-            "Try to limit spending for the rest of the month to get back on track.",
-        });
-      }
     }
-
-    // Expense breakdown insight
-    const sortedCategories = [...spendingCategories].sort(
-      (a, b) => b.amount - a.amount
-    );
-    const largestExpense = sortedCategories[0];
-    if (largestExpense && largestExpense.percentage > 40) {
-      result.push({
-        category: largestExpense.name,
-        insight: `${largestExpense.name} makes up ${largestExpense.percentage}% of your fixed expenses.`,
-        suggestion:
-          "This is a significant portion. Make sure you're getting good value here.",
-      });
-    }
-
     return result;
-  }, [
-    profile,
-    derivedFinancials,
-    fixedExpenses,
-    savingsRate,
-    spendingCategories,
-    currentMonthExpenses,
-    variableExpensesTotal,
-    formatCurrency,
-  ]);
+  }, [profile, derivedFinancials, fixedExpenses, savingsRate, currentMonthExpenses, variableExpensesTotal, formatCurrency]);
 
-  // Handle add expense form submit
   const handleAddExpense = () => {
     const amount = parseFloat(expenseAmount);
     if (!expenseName.trim() || isNaN(amount) || amount <= 0) return;
-
     addMonthlyExpense({
       name: expenseName.trim(),
       amount,
       category: expenseCategory,
       date: new Date().toISOString(),
     });
-
-    // Reset form
     setExpenseName("");
     setExpenseAmount("");
     setExpenseCategory("food");
     setSheetOpen(false);
+    fire();
   };
 
-  // Format date for display
-  const formatDate = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  if (!profile || !derivedFinancials) {
-    return null;
-  }
-
-  const hasFixedExpenses = spendingCategories.length > 0;
+  if (!profile || !derivedFinancials) return null;
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <FloatingOrbs variant="subtle" />
+    <AnimatePage>
+      <ConfettiComponent />
+      <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
+        <FloatingOrbs variant="default" />
 
-      {/* Header */}
-      <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1">Spending Insights</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-              Where your money goes this month
-            </p>
-          </div>
-          <Button
-            size="sm"
-            className="gap-1 sm:gap-1.5 text-xs sm:text-sm shrink-0"
-            onClick={() => setSheetOpen(true)}
-          >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Add</span> Expense
-          </Button>
-        </div>
-      </header>
-
-      {/* Add Expense Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
-          <SheetHeader className="text-left">
-            <SheetTitle>Add Variable Expense</SheetTitle>
-            <SheetDescription>
-              Track a new expense for this month.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="expense-name">Name</Label>
-              <Input
-                id="expense-name"
-                placeholder="e.g. Lunch, Uber ride, Netflix"
-                value={expenseName}
-                onChange={(e) => setExpenseName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expense-amount">Amount ({symbol})</Label>
-              <Input
-                id="expense-amount"
-                type="number"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                value={expenseAmount}
-                onChange={(e) => setExpenseAmount(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={expenseCategory}
-                onValueChange={(val) =>
-                  setExpenseCategory(val as VariableExpenseCategory)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ALL_CATEGORIES.map((cat) => {
-                    const Icon = categoryIconMap[cat];
-                    return (
-                      <SelectItem key={cat} value={cat}>
-                        <span className="flex items-center gap-2">
-                          <Icon
-                            className="w-4 h-4"
-                            style={{ color: categoryColorMap[cat] }}
-                          />
-                          {categoryLabels[cat]}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              className="w-full mt-2"
-              onClick={handleAddExpense}
-              disabled={
-                !expenseName.trim() ||
-                !expenseAmount ||
-                parseFloat(expenseAmount) <= 0
-              }
-            >
-              Add Expense
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <main className="relative z-10 px-4 sm:px-6 space-y-4 sm:space-y-6">
-        {/* Monthly Summary Card */}
-        <div className="glass-card-3d p-4 sm:p-6 glow-teal">
-          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-3 sm:mb-4">
-            Monthly Summary
-          </h3>
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Total Income</span>
-              <span className="font-semibold text-success text-sm sm:text-base">
-                {formatCurrency(totalIncome)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Fixed Expenses</span>
-              <span className="font-semibold text-sm sm:text-base">
-                {formatCurrency(fixedExpenses)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Variable Expenses</span>
-              <span className="font-semibold text-sm sm:text-base">
-                {formatCurrency(variableExpensesTotal)}
-              </span>
-            </div>
-            <div className="h-px bg-border/50" />
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Total Spent</span>
-              <span className="font-semibold text-accent text-sm sm:text-base">
-                {formatCurrency(totalSpent)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Amount Saved</span>
-              <span className="font-semibold text-primary text-sm sm:text-base">
-                {formatCurrency(amountSaved)}
-              </span>
-            </div>
-            <div className="pt-2 sm:pt-3 border-t border-border/50 flex items-center justify-between">
-              <span className="font-medium text-xs sm:text-sm">Savings Rate</span>
-              <span
-                className={cn(
-                  "font-bold text-base sm:text-lg",
-                  savingsRate >= profile.savingsTargetPercentage
-                    ? "text-success"
-                    : "text-warning"
-                )}
-              >
-                {savingsRate}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* This Month's Variable Expenses */}
-        <div className="glass-card-3d p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-              This Month's Expenses
-            </h3>
-            <span className="text-[10px] sm:text-xs text-muted-foreground">
-              {currentMonthExpenses.length} item
-              {currentMonthExpenses.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          {sortedMonthExpenses.length > 0 ? (
-            <div className="space-y-2 sm:space-y-3">
-              {sortedMonthExpenses.map((expense) => {
-                const Icon = categoryIconMap[expense.category];
-                const color = categoryColorMap[expense.category];
-                return (
-                  <div
-                    key={expense.id}
-                    className="flex items-center gap-2 sm:gap-3 group"
-                  >
-                    <div
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${color}20` }}
-                    >
-                      <Icon
-                        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                        style={{ color }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-xs sm:text-sm truncate">
-                          {expense.name}
-                        </span>
-                        <span className="font-semibold text-xs sm:text-sm ml-2 shrink-0">
-                          {formatCurrency(expense.amount)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5">
-                        <span
-                          className="text-[10px] sm:text-xs font-medium"
-                          style={{ color }}
-                        >
-                          {categoryLabels[expense.category]}
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1">
-                          <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          {formatDate(expense.date)}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeMonthlyExpense(expense.id)}
-                      className="p-1 sm:p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition-all shrink-0"
-                      aria-label={`Delete ${expense.name}`}
-                    >
-                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-4 sm:py-6">
-              <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground mx-auto mb-1.5 sm:mb-2 opacity-50" />
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                No expenses tracked yet this month.
+        {/* Header */}
+        <header className="relative z-10 px-4 sm:px-6 pt-6 sm:pt-8 pb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight shimmer-text">Financial Insights</h1>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] opacity-60">
+                AI analysis of your spending
               </p>
+            </div>
+            <HoverScale>
               <Button
-                variant="ghost"
                 size="sm"
-                className="mt-1.5 sm:mt-2 text-xs sm:text-sm"
+                className="btn-3d h-10 px-4 bg-primary rounded-xl font-black uppercase tracking-widest text-[10px]"
                 onClick={() => setSheetOpen(true)}
               >
-                Add your first expense
+                <Plus className="w-4 h-4 mr-1.5" />
+                Track
               </Button>
-            </div>
-          )}
-        </div>
+            </HoverScale>
+          </div>
+        </header>
 
-        {/* Fixed Expenses Breakdown */}
-        {hasFixedExpenses ? (
-          <div className="glass-card-3d p-4 sm:p-6">
-            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-3 sm:mb-4">
-              Fixed Expenses Breakdown
-            </h3>
-            <div className="space-y-3 sm:space-y-4">
-              {spendingCategories.map((category, index) => {
-                const Icon =
-                  fixedIconMap[category.category] || MoreHorizontal;
-                return (
-                  <div key={category.id}>
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                      <div
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center"
-                        style={{
-                          backgroundColor: `${FIXED_COLORS[index % FIXED_COLORS.length]}20`,
-                        }}
-                      >
-                        <Icon
-                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                          style={{
-                            color: FIXED_COLORS[index % FIXED_COLORS.length],
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-xs sm:text-sm truncate">
-                            {category.name}
-                          </span>
-                          <span className="font-semibold text-xs sm:text-sm">
-                            {formatCurrency(category.amount)}
-                          </span>
+        <main className="relative z-10 px-4 sm:px-6 space-y-6 pb-24">
+          {/* Monthly Summary Card */}
+          <HoverScale>
+            <Spotlight className="glass-card-3d p-6 glow-teal bg-primary/5 border-primary/20">
+              <div className="relative z-10">
+                <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-6">
+                  Cash Flow Summary
+                </h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">Income</p>
+                      <p className="text-xl font-black text-white tracking-tight">
+                        {formatCurrency(totalIncome)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">Total Spent</p>
+                      <p className="text-xl font-black text-primary tracking-tight">
+                        <AnimatedNumber value={totalSpent} prefix={symbol} />
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Savings Rate</span>
+                      <span className={cn(
+                        "text-xl font-black tracking-tighter",
+                        savingsRate >= profile.savingsTargetPercentage ? "text-primary shimmer-text" : "text-warning"
+                      )}>
+                        {savingsRate}%
+                      </span>
+                    </div>
+                    <AnimatedProgress
+                      value={Math.min(savingsRate, 100)}
+                      color={savingsRate >= profile.savingsTargetPercentage ? "primary" : "warning"}
+                      size="md"
+                      showGlow={savingsRate >= profile.savingsTargetPercentage}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Spotlight>
+          </HoverScale>
+
+          {/* Transactions List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                Recent Transactions
+              </h3>
+              <span className="text-[10px] font-black text-muted-foreground/40 bg-white/5 px-2 py-0.5 rounded-full">
+                {currentMonthExpenses.length} ITEMS
+              </span>
+            </div>
+
+            {sortedMonthExpenses.length > 0 ? (
+              <AnimateList className="space-y-3">
+                {sortedMonthExpenses.map((expense) => {
+                  const Icon = categoryIconMap[expense.category];
+                  const color = categoryColorMap[expense.category];
+                  return (
+                    <AnimateItem key={expense.id}>
+                      <HoverScale>
+                        <Spotlight className="glass-card-3d p-4 group" color={`${color}20`}>
+                          <div className="flex items-center gap-4 relative z-10">
+                            <div
+                              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 shadow-inner"
+                              style={{ backgroundColor: `${color}15` }}
+                            >
+                              <Icon className="w-5 h-5" style={{ color }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold text-sm sm:text-base truncate text-white">
+                                  {expense.name}
+                                </span>
+                                <span className="font-black text-sm sm:text-base text-white">
+                                  {formatCurrency(expense.amount)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground opacity-60">
+                                  {categoryLabels[expense.category]}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-white/10" />
+                                <span className="text-[10px] font-bold text-muted-foreground/60 flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(expense.date).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeMonthlyExpense(expense.id);
+                              }}
+                              className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-destructive/20 transition-all border border-white/5"
+                            >
+                              <X className="w-4 h-4 text-destructive" />
+                            </button>
+                          </div>
+                        </Spotlight>
+                      </HoverScale>
+                    </AnimateItem>
+                  );
+                })}
+              </AnimateList>
+            ) : (
+              <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+                  <Plus className="w-6 h-6 text-muted-foreground opacity-40" />
+                </div>
+                <p className="text-xs font-bold text-muted-foreground/60 mb-6">No variable expenses tracked this month.</p>
+                <HoverScale>
+                  <Button onClick={() => setSheetOpen(true)} variant="outline" className="rounded-xl border-white/10 font-bold text-xs h-10 px-6">
+                    Track Expense
+                  </Button>
+                </HoverScale>
+              </div>
+            )}
+          </div>
+
+          {/* Fixed Costs Breakdown */}
+          {spendingCategories.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">
+                Fixed Commitments
+              </h3>
+              <Spotlight className="glass-card-3d p-6 border-white/5" color="hsla(217, 91%, 60%, 0.05)">
+                <div className="space-y-6 relative z-10">
+                  {spendingCategories.map((category, index) => {
+                    const Icon = fixedIconMap[category.category] || MoreHorizontal;
+                    const color = category.color;
+                    return (
+                      <div key={category.id} className="group">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner"
+                            style={{ backgroundColor: `${color}15` }}
+                          >
+                            <Icon className="w-4 h-4" style={{ color }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-sm text-white">{category.name}</span>
+                              <span className="font-black text-sm text-white">{formatCurrency(category.amount)}</span>
+                            </div>
+                            <AnimatedProgress
+                              value={category.percentage}
+                              size="sm"
+                              color="primary"
+                              className="h-1.5"
+                            />
+                            <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/60 mt-1.5">
+                              {category.percentage}% OF FIXED BILLS
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="h-1.5 sm:h-2 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${category.percentage}%`,
-                          backgroundColor:
-                            FIXED_COLORS[index % FIXED_COLORS.length],
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
-                      {category.percentage}% of fixed expenses
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="glass-card-3d p-4 sm:p-6 text-center">
-            <Info className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground mx-auto mb-2 sm:mb-3" />
-            <h3 className="font-medium text-sm sm:text-base mb-1.5 sm:mb-2">No expense breakdown yet</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Add your fixed expenses in Settings to see a detailed breakdown
-              here.
-            </p>
-          </div>
-        )}
-
-        {/* Insights */}
-        {insights.length > 0 ? (
-          <div>
-            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 sm:mb-3">
-              Insights
-            </h3>
-            <div className="space-y-2 sm:space-y-3">
-              {insights.map((item, index) => (
-                <div key={index} className="glass-card p-4 sm:p-5">
-                  <p className="text-[10px] sm:text-xs text-accent font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    {item.category}
-                  </p>
-                  <p className="text-xs sm:text-sm text-foreground mb-1.5 sm:mb-2">
-                    {item.insight}
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {item.suggestion}
-                  </p>
+                    );
+                  })}
                 </div>
-              ))}
+              </Spotlight>
             </div>
+          )}
+
+          {/* AI Insights Section */}
+          {insights.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <BrainCircuit className="w-4 h-4 text-primary" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  Smart Insights
+                </h3>
+              </div>
+              <AnimateList className="space-y-3">
+                {insights.map((item, index) => (
+                  <AnimateItem key={index}>
+                    <Spotlight className="glass-card p-5 border-white/10 relative overflow-hidden group hover:border-primary/30 transition-all duration-500">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />
+                      <div className="relative z-10">
+                        <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                          <TrendingUp className="w-3 h-3" />
+                          {item.category}
+                        </p>
+                        <p className="text-sm font-bold text-white mb-3 leading-relaxed">
+                          {item.insight}
+                        </p>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                          <p className="text-xs text-muted-foreground/80 font-medium leading-relaxed">
+                            <span className="text-primary font-bold mr-1">Pro Tip:</span>
+                            {item.suggestion}
+                          </p>
+                        </div>
+                      </div>
+                    </Spotlight>
+                  </AnimateItem>
+                ))}
+              </AnimateList>
+            </div>
+          )}
+
+          {/* Tracker Modules */}
+          <div className="space-y-8 pt-4">
+            <SubscriptionTracker />
+            <BillReminders />
           </div>
-        ) : null}
+        </main>
 
-        {/* Subscription Tracker */}
-        <div className="glass-card-3d p-4 sm:p-6">
-          <SubscriptionTracker />
-        </div>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="bottom" className="rounded-t-[2.5rem] border-t border-white/10 glass-card-3d h-[85vh] p-8">
+            <SheetHeader className="text-left mb-8">
+              <SheetTitle className="text-2xl font-black tracking-tight">Track Spending</SheetTitle>
+              <SheetDescription className="text-sm font-medium text-muted-foreground">
+                Document your variable expenses to refine AI insights.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="expense-name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Name</Label>
+                <Input
+                  id="expense-name"
+                  placeholder="e.g. Weekly Groceries"
+                  value={expenseName}
+                  onChange={(e) => setExpenseName(e.target.value)}
+                  className="rounded-2xl border-white/5 bg-white/5 h-12 font-bold px-4 focus:ring-primary/20"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expense-amount" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Amount</Label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">{symbol}</span>
+                  <Input
+                    id="expense-amount"
+                    type="number"
+                    placeholder="0.00"
+                    value={expenseAmount}
+                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    className="rounded-2xl border-white/5 bg-white/5 h-12 font-black text-xl pl-10 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</Label>
+                <Select
+                  value={expenseCategory}
+                  onValueChange={(val) => setExpenseCategory(val as VariableExpenseCategory)}
+                >
+                  <SelectTrigger className="rounded-2xl border-white/5 bg-white/5 h-12 font-bold px-4">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl glass-card-3d">
+                    {ALL_CATEGORIES.map((cat) => {
+                      const Icon = categoryIconMap[cat];
+                      return (
+                        <SelectItem key={cat} value={cat} className="rounded-xl">
+                          <span className="flex items-center gap-2 font-bold text-xs">
+                            <Icon className="w-4 h-4" style={{ color: categoryColorMap[cat] }} />
+                            {categoryLabels[cat]}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                className="w-full mt-6 btn-3d bg-primary rounded-2xl h-14 font-black uppercase tracking-[0.2em] text-xs"
+                onClick={handleAddExpense}
+                disabled={!expenseName.trim() || !expenseAmount || parseFloat(expenseAmount) <= 0}
+              >
+                Track Expense
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
-        {/* Bill Reminders */}
-        <div className="glass-card-3d p-4 sm:p-6">
-          <BillReminders />
-        </div>
-
-        {/* First Month Message */}
-        {!hasFixedExpenses && currentMonthExpenses.length === 0 ? (
-          <div className="glass-card p-4 sm:p-5 bg-primary/5 border-primary/20">
-            <p className="text-xs sm:text-sm">
-              <span className="font-semibold text-primary">Welcome!</span>{" "}
-              This is your first month using the app. Add your fixed expenses
-              in Settings and track your variable expenses here to get detailed
-              spending insights and personalized tips.
-            </p>
-          </div>
-        ) : null}
-      </main>
-
-      <BottomNav />
-    </div>
+        <BottomNav />
+      </div>
+    </AnimatePage>
   );
 }
