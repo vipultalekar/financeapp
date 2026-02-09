@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PieChart, ArrowRight, BookOpen, Target, Wallet } from "lucide-react";
+import { PieChart, ArrowRight, Target, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nudges = [
@@ -27,17 +27,6 @@ const nudges = [
     glowColor: "group-hover:shadow-primary/20",
     gradientFrom: "from-primary/20",
     gradientTo: "to-primary/5",
-  },
-  {
-    icon: BookOpen,
-    label: "Learn about money",
-    description: "No jargon, just clarity",
-    href: "/learn",
-    color: "text-warning",
-    bgColor: "bg-warning/10",
-    glowColor: "group-hover:shadow-warning/20",
-    gradientFrom: "from-warning/20",
-    gradientTo: "to-warning/5",
   },
   {
     icon: Wallet,

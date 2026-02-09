@@ -78,19 +78,19 @@ export function BudgetCard({ budget, entries, onAddExpense, onViewHistory }: Bud
             onClick={() => onViewHistory(budget.id)}
         >
             {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                     <div
                         className={cn(
-                            "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl transition-all duration-300",
+                            "w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl transition-all duration-300 flex-shrink-0",
                             "group-hover:scale-110"
                         )}
                         style={{ backgroundColor: `${budget.color}20` }}
                     >
                         {getIcon(budget.icon)}
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-sm sm:text-base text-foreground">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-sm sm:text-base text-foreground truncate">
                             {budget.categoryName}
                         </h3>
                         <p className="text-xs text-muted-foreground">
@@ -101,7 +101,7 @@ export function BudgetCard({ budget, entries, onAddExpense, onViewHistory }: Bud
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-primary/10"
+                    className="h-9 w-9 p-0 hover:bg-primary/10 flex-shrink-0 ml-2"
                     onClick={(e) => {
                         e.stopPropagation();
                         onAddExpense(budget.id);
@@ -112,11 +112,11 @@ export function BudgetCard({ budget, entries, onAddExpense, onViewHistory }: Bud
             </div>
 
             {/* Amounts */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <div>
                     <p className="text-xs text-muted-foreground mb-1">Spent</p>
                     <p className={cn(
-                        "text-lg sm:text-xl font-bold",
+                        "text-base sm:text-xl font-bold",
                         isOverBudget ? "text-destructive" : "text-foreground"
                     )}>
                         {formatCurrency(budget.spent)}
@@ -126,17 +126,17 @@ export function BudgetCard({ budget, entries, onAddExpense, onViewHistory }: Bud
                     <p className="text-xs text-muted-foreground mb-1">Remaining</p>
                     <div className="flex items-center gap-1">
                         <p className={cn(
-                            "text-lg sm:text-xl font-bold",
+                            "text-base sm:text-xl font-bold",
                             isOverBudget ? "text-destructive" : remaining < budget.limit * 0.2 ? "text-warning" : "text-success"
                         )}>
                             {formatCurrency(Math.abs(remaining))}
                         </p>
                         {isOverBudget ? (
-                            <TrendingDown className="w-4 h-4 text-destructive" />
+                            <TrendingDown className="w-4 h-4 text-destructive flex-shrink-0" />
                         ) : remaining < budget.limit * 0.2 ? (
-                            <TrendingDown className="w-4 h-4 text-warning" />
+                            <TrendingDown className="w-4 h-4 text-warning flex-shrink-0" />
                         ) : (
-                            <TrendingUp className="w-4 h-4 text-success" />
+                            <TrendingUp className="w-4 h-4 text-success flex-shrink-0" />
                         )}
                     </div>
                 </div>

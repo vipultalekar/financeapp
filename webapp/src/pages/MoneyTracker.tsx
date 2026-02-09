@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/navigation/BottomNav";
 import { FloatingOrbs } from "@/components/effects/FloatingOrbs";
 import { BudgetCard } from "@/components/dashboard/BudgetCard";
 import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
+import { AddCategoryDialog } from "@/components/dashboard/AddCategoryDialog";
 import { SpendingHistory } from "@/components/dashboard/SpendingHistory";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -30,6 +31,7 @@ export default function MoneyTracker() {
     const [editingEntry, setEditingEntry] = useState<SpendingEntry | undefined>(undefined);
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+    const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
 
     // Load data from localStorage or use mock data
     useEffect(() => {
@@ -128,6 +130,22 @@ export default function MoneyTracker() {
         setBudgets(updatedBudgets);
     };
 
+    const handleAddCategory = (category: { categoryName: string; limit: number; icon: string; color: string }) => {
+        const newBudget: BudgetLimit = {
+            id: Date.now().toString(),
+            category: category.categoryName.toLowerCase().replace(/\s+/g, "-") as any,
+            categoryName: category.categoryName,
+            limit: category.limit,
+            spent: 0,
+            icon: category.icon,
+            color: category.color,
+            createdAt: new Date().toISOString(),
+        };
+        const updatedBudgets = [...budgets, newBudget];
+        setBudgets(updatedBudgets);
+        localStorage.setItem("budgetLimits", JSON.stringify(updatedBudgets));
+    };
+
     const selectedBudget = budgets.find((b) => b.id === selectedBudgetId);
     const selectedEntries = entries.filter((e) => e.budgetId === selectedBudgetId);
 
@@ -202,11 +220,19 @@ export default function MoneyTracker() {
             </header>
 
             {/* Budget Categories */}
-            <main className="relative z-10 px-4 sm:px-6 space-y-4">
-                <div className="flex items-center justify-between">
+            <main className="relative z-10 px-4 sm:px-6 space-y-4 pb-40 sm:pb-28">
+                <div className="flex items-center justify-between gap-3">
                     <h3 className="text-sm font-medium text-muted-foreground">
                         Budget Categories ({budgets.length})
                     </h3>
+                    <Button
+                        onClick={() => setShowAddCategoryDialog(true)}
+                        size="sm"
+                        className="btn-3d h-9 px-3 sm:px-4"
+                    >
+                        <Plus className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Category</span>
+                    </Button>
                 </div>
 
                 {budgets.length === 0 ? (
@@ -218,7 +244,7 @@ export default function MoneyTracker() {
                         <p className="empty-description">
                             Start tracking your spending by creating your first budget category
                         </p>
-                        <Button className="mt-6 btn-3d">
+                        <Button onClick={() => setShowAddCategoryDialog(true)} className="mt-6 btn-3d">
                             <Plus className="w-4 h-4 mr-2" />
                             Create Budget
                         </Button>
@@ -265,6 +291,13 @@ export default function MoneyTracker() {
                     />
                 </DialogContent>
             </Dialog>
+
+            {/* Add Category Dialog */}
+            <AddCategoryDialog
+                open={showAddCategoryDialog}
+                onOpenChange={setShowAddCategoryDialog}
+                onSave={handleAddCategory}
+            />
 
             <BottomNav />
         </div>
