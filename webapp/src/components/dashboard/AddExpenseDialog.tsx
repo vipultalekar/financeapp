@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -38,16 +38,18 @@ export function AddExpenseDialog({
     const [errors, setErrors] = useState<{ amount?: string; description?: string }>({});
 
     useEffect(() => {
-        if (existingEntry) {
-            setAmount(existingEntry.amount.toString());
-            setDescription(existingEntry.description);
-            setDate(existingEntry.date.split("T")[0]);
-        } else {
-            setAmount("");
-            setDescription("");
-            setDate(new Date().toISOString().split("T")[0]);
+        if (open) {
+            if (existingEntry) {
+                setAmount(existingEntry.amount.toString());
+                setDescription(existingEntry.description);
+                setDate(existingEntry.date.split("T")[0]);
+            } else {
+                setAmount("");
+                setDescription("");
+                setDate(new Date().toISOString().split("T")[0]);
+            }
+            setErrors({});
         }
-        setErrors({});
     }, [existingEntry, open]);
 
     const validateForm = () => {
@@ -83,8 +85,16 @@ export function AddExpenseDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass-card-3d border-border/50 sm:max-w-[425px]">
-                <DialogHeader>
+            {/* 
+              Improved Layout for Sticky Footer:
+              1. max-h-[85vh] prevents overflow on mobile
+              2. flex flex-col enables sticky footer
+              3. !p-0 overrides default padding to allow children to control spacing
+              4. gap-0 removes default gap
+              5. overflow-hidden clips content to border radius
+            */}
+            <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-border/50 sm:max-w-[425px] max-h-[85vh] w-[95vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
+                <DialogHeader className="flex-none p-6 pb-2">
                     <DialogTitle className="text-xl font-semibold">
                         {existingEntry ? "Edit Expense" : "Add Expense"}
                     </DialogTitle>
@@ -95,7 +105,7 @@ export function AddExpenseDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-4 py-4">
+                <div className="flex-1 overflow-y-auto min-h-0 p-6 py-2 space-y-4">
                     {/* Amount Input */}
                     <div className="grid gap-2">
                         <Label htmlFor="amount" className="text-sm font-medium">
@@ -150,20 +160,19 @@ export function AddExpenseDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0">
+                <DialogFooter className="flex-none flex flex-row gap-2 p-6 pt-4 border-t border-border/50 bg-background/50 backdrop-blur-xl sm:flex-row sm:justify-end sm:space-x-0">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
-                        className="hover:bg-muted"
+                        className="flex-1 sm:flex-none hover:bg-muted"
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleSave}
-                        className="btn-3d bg-primary text-primary-foreground hover:bg-primary/90"
+                        className="flex-1 sm:flex-none btn-3d bg-primary text-primary-foreground hover:bg-primary/90"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
-                        {existingEntry ? "Update" : "Add"} Expense
+                        {existingEntry ? "Update" : "Add"} <span className="hidden sm:inline ml-1">Expense</span>
                     </Button>
                 </DialogFooter>
             </DialogContent>

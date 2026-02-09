@@ -278,17 +278,19 @@ export default function MoneyTracker() {
 
             {/* Spending History Dialog */}
             <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-                <DialogContent className="glass-card-3d border-border/50 sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
+                <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-border/50 sm:max-w-[500px] max-h-[85vh] w-[95vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
+                    <DialogHeader className="flex-none p-6 pb-2">
                         <DialogTitle className="text-xl font-semibold">
                             {selectedBudget?.categoryName} History
                         </DialogTitle>
                     </DialogHeader>
-                    <SpendingHistory
-                        entries={selectedEntries}
-                        onEdit={handleEditEntry}
-                        onDelete={handleDeleteEntry}
-                    />
+                    <div className="flex-1 overflow-y-auto min-h-0 p-6 pt-0">
+                        <SpendingHistory
+                            entries={selectedEntries}
+                            onEdit={handleEditEntry}
+                            onDelete={handleDeleteEntry}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
 

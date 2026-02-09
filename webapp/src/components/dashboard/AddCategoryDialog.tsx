@@ -100,7 +100,7 @@ export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDia
               4. gap-0 removes default gap
               5. overflow-hidden clips content to border radius
             */}
-            <DialogContent className="glass-card-3d border-border/50 sm:max-w-[500px] max-h-[85vh] w-[90vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
+            <DialogContent className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 glass-card-3d border-border/50 sm:max-w-[500px] max-h-[85vh] w-[95vw] sm:w-full flex flex-col !p-0 gap-0 overflow-hidden">
 
                 {/* Header - Fixed at top */}
                 <DialogHeader className="flex-none p-6 pb-2">
@@ -163,8 +163,8 @@ export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDia
                                     type="button"
                                     onClick={() => setSelectedIcon(icon.name)}
                                     className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${selectedIcon === icon.name
-                                            ? "border-primary bg-primary/10"
-                                            : "border-border/30 bg-muted/30 hover:border-border"
+                                        ? "border-primary bg-primary/10"
+                                        : "border-border/30 bg-muted/30 hover:border-border"
                                         }`}
                                     title={icon.label}
                                 >
@@ -186,8 +186,8 @@ export function AddCategoryDialog({ open, onOpenChange, onSave }: AddCategoryDia
                                     type="button"
                                     onClick={() => setSelectedColor(color.value)}
                                     className={`w-full aspect-square rounded-lg border-2 transition-all hover:scale-105 ${selectedColor === color.value
-                                            ? "border-foreground scale-105"
-                                            : "border-border/30"
+                                        ? "border-foreground scale-105"
+                                        : "border-border/30"
                                         }`}
                                     style={{ backgroundColor: color.value }}
                                     title={color.name}
