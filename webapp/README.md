@@ -13,16 +13,16 @@ Clarity is designed for 18-30 year olds who are just starting their financial jo
 - Monthly income slider
 - Fixed expenses input (rent, EMI)
 - Financial vibe selection (control, save, invest, figuring out)
-- AI intro explaining capabilities
+- Intro explaining capabilities
 
 ### Home Dashboard
-- Personalized AI greeting
+- Personalized greeting
 - Money Snapshot with spend vs save ring chart
 - Cash balance trend visualization
-- Rotating AI insight cards
+- Rotating smart insight cards
 - Quick action nudges
 
-### AI Coach Chat
+### Smart Assistant Chat
 - Conversational interface with visual responses
 - Inline bar charts and progress visuals
 - Suggested questions for new users
@@ -31,7 +31,7 @@ Clarity is designed for 18-30 year olds who are just starting their financial jo
 ### Spending Insights
 - Category breakdown with progress bars
 - Month-over-month comparison
-- AI pattern recognition
+- Smart pattern recognition
 - Trend indicators without scary alerts
 
 ### Savings & Goals
@@ -65,7 +65,7 @@ Clarity is designed for 18-30 year olds who are just starting their financial jo
 
 - `/` - Home Dashboard (redirects to onboarding if new user)
 - `/onboarding` - 3-step onboarding flow
-- `/chat` - AI Coach conversation
+- `/chat` - Smart Assistant conversation
 - `/insights` - Spending insights
 - `/goals` - Savings & goals
 - `/learn` - Investment education

@@ -161,9 +161,9 @@ function TopicDetail({
           <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           <Sparkles className="w-8 h-8 text-primary mx-auto mb-4 animate-pulse" />
           <h3 className="text-xl font-bold mb-2">Dive Deeper?</h3>
-          <p className="text-sm text-muted-foreground mb-6 font-medium">Our AI can answer specific questions about this topic based on your current financial state.</p>
+          <p className="text-sm text-muted-foreground mb-6 font-medium">Rupiyo can answer specific questions about this topic based on your current financial state.</p>
           <HoverScale>
-            <Button className="btn-3d px-10 h-14 bg-primary font-black uppercase tracking-widest text-xs">ASK AI RUPIYO</Button>
+            <Button className="btn-3d px-10 h-14 bg-primary font-black uppercase tracking-widest text-xs">ASK RUPIYO</Button>
           </HoverScale>
         </div>
 

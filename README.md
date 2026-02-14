@@ -32,7 +32,7 @@
 - **Financial Goals**: Set and track savings goals
 - **Progress Tracking**: Visual progress indicators
 - **Milestone Celebrations**: Celebrate achievements
-- **Smart Recommendations**: AI-powered goal suggestions
+- **Smart Recommendations**: Smart goal suggestions
 
 ### 📚 Learning Center
 - **Financial Tips**: Expert advice on money management
